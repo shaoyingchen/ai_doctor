@@ -11,7 +11,7 @@ const Pipeline = React.lazy(() => import('@/pages/Pipeline'))
 const Annotation = React.lazy(() => import('@/pages/Annotation'))
 const Enhance = React.lazy(() => import('@/pages/Enhance'))
 const Flywheel = React.lazy(() => import('@/pages/Flywheel'))
-const Template = React.lazy(() => import('@/pages/Template'))
+const Template = React.lazy(() => import('@/pages/Template/index'))
 const Graph = React.lazy(() => import('@/pages/Graph'))
 const Analytics = React.lazy(() => import('@/pages/Analytics'))
 

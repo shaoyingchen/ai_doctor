@@ -1,0 +1,186 @@
+import { useChatStore } from '@/stores/chatStore'
+import { cn } from '@/lib/cn'
+import {
+  Database,
+  CheckCircle,
+  Clock,
+  FileText,
+  BookOpen,
+  GitCompare,
+  Lightbulb,
+  ChevronRight,
+  ChevronLeft,
+  History
+} from 'lucide-react'
+
+const skillIcons: Record<string, React.ReactNode> = {
+  FileText: <FileText className="w-4 h-4" />,
+  BookOpen: <BookOpen className="w-4 h-4" />,
+  GitCompare: <GitCompare className="w-4 h-4" />,
+  Lightbulb: <Lightbulb className="w-4 h-4" />,
+}
+
+export function SidePanel() {
+  const {
+    knowledgeBases,
+    selectedKBs,
+    quickSkills,
+    chatHistory,
+    toggleKB,
+    loadSession,
+    sidePanelOpen,
+    toggleSidePanel,
+  } = useChatStore()
+
+  // Mock verification stats
+  const verificationStats = {
+    total: 12,
+    verified: 10,
+    pending: 2,
+    accuracy: 95
+  }
+
+  if (!sidePanelOpen) {
+    return (
+      <button
+        onClick={toggleSidePanel}
+        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-slate-200 border-r-0 rounded-l-lg p-2 text-slate-400 hover:text-primary hover:bg-primary-50 transition-colors"
+      >
+        <ChevronLeft className="w-4 h-4" />
+      </button>
+    )
+  }
+
+  return (
+    <div className="w-72 bg-white border-l border-slate-200 flex flex-col h-full overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-slate-200">
+        <h3 className="font-medium text-slate-800">会话信息</h3>
+        <button
+          onClick={toggleSidePanel}
+          className="text-slate-400 hover:text-slate-600"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        {/* Knowledge Base Selection */}
+        <div>
+          <h4 className="text-sm font-medium text-slate-700 mb-3 flex items-center gap-2">
+            <Database className="w-4 h-4 text-primary" />
+            检索范围
+          </h4>
+          <div className="space-y-2">
+            {knowledgeBases.map((kb) => (
+              <label
+                key={kb.id}
+                className={cn(
+                  "flex items-center gap-3 p-2.5 rounded-lg border cursor-pointer transition-colors",
+                  selectedKBs.includes(kb.id)
+                    ? "border-primary bg-primary-50"
+                    : "border-slate-200 hover:border-slate-300"
+                )}
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedKBs.includes(kb.id)}
+                  onChange={() => toggleKB(kb.id)}
+                  className="w-4 h-4 text-primary rounded border-slate-300 focus:ring-primary"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-slate-700 truncate">{kb.name}</p>
+                  <p className="text-xs text-slate-400">{kb.documentCount} 文档</p>
+                </div>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Verification Status */}
+        <div>
+          <h4 className="text-sm font-medium text-slate-700 mb-3 flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-green-500" />
+            真实性验证
+          </h4>
+          <div className="bg-slate-50 rounded-lg p-3 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-600">已验证</span>
+              <span className="text-sm font-medium text-green-600">{verificationStats.verified}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-600">待验证</span>
+              <span className="text-sm font-medium text-yellow-600">{verificationStats.pending}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-600">准确率</span>
+              <span className="text-sm font-medium text-primary">{verificationStats.accuracy}%</span>
+            </div>
+            <div className="pt-2 border-t border-slate-200">
+              <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-green-500 rounded-full"
+                  style={{ width: `${(verificationStats.verified / verificationStats.total) * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Skills */}
+        <div>
+          <h4 className="text-sm font-medium text-slate-700 mb-3 flex items-center gap-2">
+            <Lightbulb className="w-4 h-4 text-yellow-500" />
+            快捷技能
+          </h4>
+          <div className="grid grid-cols-2 gap-2">
+            {quickSkills.map((skill) => (
+              <button
+                key={skill.id}
+                className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-slate-200 hover:border-primary hover:bg-primary-50 transition-colors group"
+              >
+                <span className="text-slate-400 group-hover:text-primary transition-colors">
+                  {skillIcons[skill.icon] || <FileText className="w-4 h-4" />}
+                </span>
+                <span className="text-xs text-slate-600 group-hover:text-primary">{skill.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Chat History */}
+        {chatHistory.length > 0 && (
+          <div>
+            <h4 className="text-sm font-medium text-slate-700 mb-3 flex items-center gap-2">
+              <History className="w-4 h-4 text-slate-400" />
+              历史记录
+            </h4>
+            <div className="space-y-2">
+              {chatHistory.slice(0, 5).map((session) => (
+                <button
+                  key={session.id}
+                  onClick={() => loadSession(session.id)}
+                  className="w-full text-left p-2.5 rounded-lg border border-slate-200 hover:border-primary hover:bg-primary-50 transition-colors"
+                >
+                  <p className="text-sm text-slate-700 truncate">{session.title}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {new Date(session.updatedAt).toLocaleDateString('zh-CN')}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="p-4 border-t border-slate-200">
+        <div className="flex items-center gap-2 text-xs text-slate-500">
+          <Clock className="w-3.5 h-3.5" />
+          <span>会话已自动保存</span>
+        </div>
+      </div>
+    </div>
+  )
+}

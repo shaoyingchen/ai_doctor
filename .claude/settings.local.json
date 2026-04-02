@@ -11,7 +11,8 @@
       "Bash(npx tailwindcss:*)",
       "Bash(npm list:*)",
       "Bash(npm uninstall:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(grep -l \"import { .*} from '@/types'\" src/stores/*.ts)"
     ]
   }
 }
