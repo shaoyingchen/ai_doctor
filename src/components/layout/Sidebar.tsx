@@ -115,13 +115,16 @@ export const Sidebar: React.FC = () => {
 
       {/* Menu */}
       <div className="flex-1 py-4 overflow-y-auto overflow-x-hidden">
-        <nav className="px-2 space-y-1">
+        <nav className="px-2 space-y-1" aria-label="主导航">
           {menuItems.map((item) => (
             <button
               key={item.id}
               onClick={() => handleMenuClick(item)}
+              aria-label={item.label}
+              aria-current={location.pathname === item.path ? 'page' : undefined}
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all",
+                "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
                 location.pathname === item.path
                   ? "bg-primary text-white font-medium shadow-md"
                   : "text-slate-600 hover:bg-slate-100"
