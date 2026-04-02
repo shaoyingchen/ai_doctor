@@ -1,0 +1,330 @@
+<h2>页面设计 09：前置模板库【新增】</h2>
+<p class="subtitle">公文模板、提示词模板、Agent模板 → 业务实例化 → 可用实例</p>
+
+<div class="section">
+  <div class="mockup">
+    <div class="mockup-header">前置模板库 - 完整布局</div>
+    <div class="mockup-body" style="background:#f0fdf4;padding:16px;font-size:11px;">
+
+      <!-- 模板类型切换 -->
+      <div style="background:white;border-radius:12px;padding:12px;border:2px solid #22c55e;margin-bottom:12px;">
+        <div style="display:flex;gap:4px;background:#f0fdf4;padding:6px;border-radius:8px;">
+          <div style="background:#22c55e;color:white;padding:12px 20px;border-radius:8px;font-size:11px;font-weight:bold;flex:1;text-align:center;">
+            📝 公文模板
+          </div>
+          <div style="background:white;padding:12px 20px;border-radius:8px;font-size:11px;color:#15803d;border:1px solid #22c55e;flex:1;text-align:center;">
+            💬 提示词模板
+          </div>
+          <div style="background:white;padding:12px 20px;border-radius:8px;font-size:11px;color:#15803d;border:1px solid #22c55e;flex:1;text-align:center;">
+            🤖 Agent模板
+          </div>
+          <div style="background:white;padding:12px 20px;border-radius:8px;font-size:11px;color:#15803d;border:1px solid #22c55e;flex:1;text-align:center;">
+            ✅ 已实例化
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;">
+        <!-- 左侧：模板分类 -->
+        <div style="width:220px;background:white;border-radius:12px;padding:12px;border:2px solid #22c55e;">
+          <div style="font-size:11px;font-weight:bold;color:#15803d;margin-bottom:12px;">📁 模板分类</div>
+
+          <!-- 搜索框 -->
+          <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:8px;padding:8px;margin-bottom:12px;display:flex;gap:6px;align-items:center;">
+            <span style="color:#22c55e;">🔍</span>
+            <span style="font-size:10px;color:#16a34a;">搜索模板...</span>
+          </div>
+
+          <!-- 分类树 -->
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="background:#22c55e;color:white;padding:10px;border-radius:8px;font-size:10px;display:flex;justify-content:space-between;align-items:center;">
+              <span>📋 行政公文</span>
+              <span style="background:#15803d;padding:2px 6px;border-radius:4px;font-size:9px;">12</span>
+            </div>
+            <div style="margin-left:12px;display:flex;flex-direction:column;gap:4px;">
+              <div style="background:#dcfce7;padding:8px;border-radius:6px;font-size:9px;color:#15803d;border-left:2px solid #22c55e;">
+                会议通知 <span style="background:#22c55e;color:white;padding:1px 4px;border-radius:3px;font-size:8px;">3</span>
+              </div>
+              <div style="background:#f0fdf4;padding:8px;border-radius:6px;font-size:9px;color:#15803d;">
+                请示报告 <span style="background:#f0fdf4;border:1px solid #22c55e;padding:1px 4px;border-radius:3px;font-size:8px;">2</span>
+              </div>
+              <div style="background:#f0fdf4;padding:8px;border-radius:6px;font-size:9px;color:#15803d;">
+                工作方案 <span style="background:#f0fdf4;border:1px solid #22c55e;padding:1px 4px;border-radius:3px;font-size:8px;">4</span>
+              </div>
+            </div>
+
+            <div style="background:#f0fdf4;padding:10px;border-radius:8px;font-size:10px;color:#15803d;display:flex;justify-content:space-between;align-items:center;border:1px solid #22c55e;">
+              <span>📄 合同文书</span>
+              <span style="background:#f0fdf4;border:1px solid #22c55e;padding:2px 6px;border-radius:4px;font-size:9px;">8</span>
+            </div>
+
+            <div style="background:#f0fdf4;padding:10px;border-radius:8px;font-size:10px;color:#15803d;display:flex;justify-content:space-between;align-items:center;border:1px solid #22c55e;">
+              <span>📊 报告总结</span>
+              <span style="background:#f0fdf4;border:1px solid #22c55e;padding:2px 6px;border-radius:4px;font-size:9px;">6</span>
+            </div>
+
+            <div style="background:#f0fdf4;padding:10px;border-radius:8px;font-size:10px;color:#15803d;display:flex;justify-content:space-between;align-items:center;border:1px solid #22c55e;">
+              <span>📧 函件模板</span>
+              <span style="background:#f0fdf4;border:1px solid #22c55e;padding:2px 6px;border-radius:4px;font-size:9px;">5</span>
+            </div>
+          </div>
+
+          <!-- 新建分类 -->
+          <div style="margin-top:12px;background:#f0fdf4;border:1px dashed #22c55e;padding:10px;border-radius:8px;font-size:10px;color:#15803d;text-align:center;">
+            + 新建分类
+          </div>
+        </div>
+
+        <!-- 中间：模板列表 -->
+        <div style="flex:1;background:white;border-radius:12px;padding:12px;border:2px solid #22c55e;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <div style="font-size:11px;color:#15803d;">
+              当前分类：<span style="font-weight:bold;">行政公文 / 会议通知</span>
+              <span style="background:#dcfce7;padding:4px 8px;border-radius:4px;font-size:9px;color:#15803d;margin-left:8px;">3个模板</span>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <div style="background:#22c55e;color:white;padding:8px 14px;border-radius:8px;font-size:10px;font-weight:bold;">+ 新建模板</div>
+              <div style="background:#f0fdf4;border:1px solid #22c55e;padding:8px 14px;border-radius:8px;font-size:10px;color:#15803d;">📤 导入模板</div>
+            </div>
+          </div>
+
+          <!-- 模板卡片网格 -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <!-- 模板卡片1 -->
+            <div style="background:#f0fdf4;padding:12px;border-radius:10px;border:2px solid #22c55e;">
+              <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <div style="background:#22c55e;color:white;padding:8px;border-radius:8px;font-size:14px;">📋</div>
+                  <div>
+                    <div style="font-size:11px;font-weight:bold;color:#15803d;">会议通知模板</div>
+                    <div style="font-size:9px;color:#16a34a;">标准格式 · 适用广泛</div>
+                  </div>
+                </div>
+                <div style="background:#dcfce7;padding:4px 8px;border-radius:4px;font-size:9px;color:#15803d;">官方</div>
+              </div>
+              <div style="background:white;padding:8px;border-radius:6px;margin-bottom:8px;font-size:9px;color:#64748b;line-height:1.6;">
+                包含会议时间、地点、参会人员、会议议程等完整要素...
+              </div>
+              <div style="display:flex;gap:4px;margin-bottom:8px;">
+                <div style="background:#e0f2fe;padding:4px 6px;border-radius:4px;font-size:8px;color:#0369a1;">时间</div>
+                <div style="background:#e0f2fe;padding:4px 6px;border-radius:4px;font-size:8px;color:#0369a1;">地点</div>
+                <div style="background:#e0f2fe;padding:4px 6px;border-radius:4px;font-size:8px;color:#0369a1;">议程</div>
+                <div style="background:#e0f2fe;padding:4px 6px;border-radius:4px;font-size:8px;color:#0369a1;">参会人</div>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <div style="background:#22c55e;color:white;padding:6px 12px;border-radius:6px;font-size:9px;flex:1;text-align:center;">使用模板</div>
+                <div style="background:white;border:1px solid #22c55e;padding:6px 8px;border-radius:6px;font-size:9px;color:#15803d;">👁</div>
+                <div style="background:white;border:1px solid #22c55e;padding:6px 8px;border-radius:6px;font-size:9px;color:#15803d;">✏</div>
+              </div>
+            </div>
+
+            <!-- 模板卡片2 -->
+            <div style="background:#f0fdf4;padding:12px;border-radius:10px;border:2px solid #22c55e;">
+              <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <div style="background:#0ea5e9;color:white;padding:8px;border-radius:8px;font-size:14px;">📋</div>
+                  <div>
+                    <div style="font-size:11px;font-weight:bold;color:#15803d;">紧急会议通知</div>
+                    <div style="font-size:9px;color:#16a34a;">快速发布 · 紧急事项</div>
+                  </div>
+                </div>
+                <div style="background:#fef3c7;padding:4px 8px;border-radius:4px;font-size:9px;color:#854d0e;">热门</div>
+              </div>
+              <div style="background:white;padding:8px;border-radius:6px;margin-bottom:8px;font-size:9px;color:#64748b;line-height:1.6;">
+                简化流程，突出紧急性，适合临时会议通知...
+              </div>
+              <div style="display:flex;gap:4px;margin-bottom:8px;">
+                <div style="background:#fef3c7;padding:4px 6px;border-radius:4px;font-size:8px;color:#854d0e;">紧急</div>
+                <div style="background:#fef3c7;padding:4px 6px;border-radius:4px;font-size:8px;color:#854d0e;">简化</div>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <div style="background:#22c55e;color:white;padding:6px 12px;border-radius:6px;font-size:9px;flex:1;text-align:center;">使用模板</div>
+                <div style="background:white;border:1px solid #22c55e;padding:6px 8px;border-radius:6px;font-size:9px;color:#15803d;">👁</div>
+                <div style="background:white;border:1px solid #22c55e;padding:6px 8px;border-radius:6px;font-size:9px;color:#15803d;">✏</div>
+              </div>
+            </div>
+
+            <!-- 模板卡片3 -->
+            <div style="background:#f0fdf4;padding:12px;border-radius:10px;border:1px solid #22c55e;">
+              <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <div style="background:#d946ef;color:white;padding:8px;border-radius:8px;font-size:14px;">📋</div>
+                  <div>
+                    <div style="font-size:11px;font-weight:bold;color:#15803d;">年度会议通知</div>
+                    <div style="font-size:9px;color:#16a34a;">年度规划 · 正式场合</div>
+                  </div>
+                </div>
+                <div style="background:#fae8ff;padding:4px 8px;border-radius:4px;font-size:9px;color:#7c3aed;">自定义</div>
+              </div>
+              <div style="background:white;padding:8px;border-radius:6px;margin-bottom:8px;font-size:9px;color:#64748b;line-height:1.6;">
+                适用于年度总结会议、规划会议等正式场合...
+              </div>
+              <div style="display:flex;gap:4px;margin-bottom:8px;">
+                <div style="background:#fae8ff;padding:4px 6px;border-radius:4px;font-size:8px;color:#7c3aed;">年度</div>
+                <div style="background:#fae8ff;padding:4px 6px;border-radius:4px;font-size:8px;color:#7c3aed;">正式</div>
+                <div style="background:#fae8ff;padding:4px 6px;border-radius:4px;font-size:8px;color:#7c3aed;">规划</div>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <div style="background:#22c55e;color:white;padding:6px 12px;border-radius:6px;font-size:9px;flex:1;text-align:center;">使用模板</div>
+                <div style="background:white;border:1px solid #22c55e;padding:6px 8px;border-radius:6px;font-size:9px;color:#15803d;">👁</div>
+                <div style="background:white;border:1px solid #22c55e;padding:6px 8px;border-radius:6px;font-size:9px;color:#15803d;">✏</div>
+              </div>
+            </div>
+
+            <!-- 新建模板卡片 -->
+            <div style="background:#f8fafc;padding:12px;border-radius:10px;border:2px dashed #22c55e;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:140px;">
+              <div style="font-size:24px;color:#22c55e;margin-bottom:8px;">+</div>
+              <div style="font-size:11px;color:#15803d;font-weight:bold;">新建模板</div>
+              <div style="font-size:9px;color:#16a34a;margin-top:4px;">从空白或现有模板创建</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧：实例化面板 -->
+        <div style="width:280px;background:white;border-radius:12px;padding:12px;border:2px solid #22c55e;">
+          <div style="font-size:11px;font-weight:bold;color:#15803d;margin-bottom:12px;">🔧 模板实例化</div>
+
+          <!-- 选中模板信息 -->
+          <div style="background:#f0fdf4;padding:10px;border-radius:8px;margin-bottom:12px;border:1px solid #22c55e;">
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+              <div style="background:#22c55e;color:white;padding:6px;border-radius:6px;font-size:12px;">📋</div>
+              <div style="font-size:11px;font-weight:bold;color:#15803d;">会议通知模板</div>
+            </div>
+            <div style="font-size:9px;color:#16a34a;">标准格式 · 已使用 128 次</div>
+          </div>
+
+          <!-- 实例化配置 -->
+          <div style="margin-bottom:12px;">
+            <div style="font-size:10px;font-weight:bold;color:#15803d;margin-bottom:8px;">配置参数</div>
+
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="background:#f0fdf4;padding:8px;border-radius:6px;border:1px solid #22c55e;">
+                <div style="font-size:9px;color:#15803d;margin-bottom:4px;">实例名称</div>
+                <div style="background:white;border:1px solid #22c55e;padding:6px;border-radius:4px;font-size:10px;color:#16a34a;">2024年数字化转型推进会通知</div>
+              </div>
+
+              <div style="background:#f0fdf4;padding:8px;border-radius:6px;border:1px solid #22c55e;">
+                <div style="font-size:9px;color:#15803d;margin-bottom:4px;">关联知识库</div>
+                <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                  <div style="background:#22c55e;color:white;padding:4px 8px;border-radius:4px;font-size:9px;">✓ 公共库</div>
+                  <div style="background:white;border:1px solid #22c55e;padding:4px 8px;border-radius:4px;font-size:9px;color:#15803d;">单位库</div>
+                </div>
+              </div>
+
+              <div style="background:#f0fdf4;padding:8px;border-radius:6px;border:1px solid #22c55e;">
+                <div style="font-size:9px;color:#15803d;margin-bottom:4px;">AI增强</div>
+                <div style="display:flex;gap:4px;">
+                  <div style="background:#22c55e;color:white;padding:4px 8px;border-radius:4px;font-size:9px;">✓ 智能续写</div>
+                  <div style="background:white;border:1px solid #22c55e;padding:4px 8px;border-radius:4px;font-size:9px;color:#15803d;">格式校验</div>
+                </div>
+              </div>
+
+              <div style="background:#f0fdf4;padding:8px;border-radius:6px;border:1px solid #22c55e;">
+                <div style="font-size:9px;color:#15803d;margin-bottom:4px;">使用权限</div>
+                <div style="background:white;border:1px solid #22c55e;padding:6px;border-radius:4px;font-size:10px;color:#16a34a;">全员可见</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 创建实例 -->
+          <div style="background:#22c55e;color:white;padding:12px;border-radius:8px;font-size:11px;font-weight:bold;text-align:center;margin-bottom:8px;">
+            🚀 创建可用实例
+          </div>
+
+          <!-- 已创建实例 -->
+          <div style="background:#fefce8;padding:10px;border-radius:8px;border:1px solid #eab308;">
+            <div style="font-size:10px;font-weight:bold;color:#a16207;margin-bottom:8px;">📦 已创建实例</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="background:white;padding:6px;border-radius:4px;font-size:9px;color:#854d0e;display:flex;justify-content:space-between;">
+                <span>季度总结会议通知</span>
+                <span style="color:#16a34a;">✓</span>
+              </div>
+              <div style="background:white;padding:6px;border-radius:4px;font-size:9px;color:#854d0e;display:flex;justify-content:space-between;">
+                <span>部门例会通知</span>
+                <span style="color:#16a34a;">✓</span>
+              </div>
+              <div style="background:white;padding:6px;border-radius:4px;font-size:9px;color:#854d0e;display:flex;justify-content:space-between;">
+                <span>培训会议通知</span>
+                <span style="color:#16a34a;">✓</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">提示词模板示例（切换Tab时显示）</div>
+  <div style="background:white;border-radius:8px;padding:12px;border:1px solid #22c55e;font-size:11px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div style="background:#f0fdf4;padding:12px;border-radius:8px;border:1px solid #22c55e;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <div style="font-weight:bold;color:#15803d;">💬 公文问答Prompt</div>
+          <div style="background:#22c55e;color:white;padding:2px 6px;border-radius:4px;font-size:9px;">v2.3</div>
+        </div>
+        <div style="font-size:9px;color:#16a34a;line-height:1.6;background:white;padding:8px;border-radius:6px;">
+          你是一个专业的公文问答助手。请基于提供的知识库内容回答用户问题，并标注引用来源...
+        </div>
+        <div style="display:flex;gap:4px;margin-top:8px;">
+          <div style="background:#e0f2fe;padding:4px 6px;border-radius:4px;font-size:8px;color:#0369a1;">溯源</div>
+          <div style="background:#e0f2fe;padding:4px 6px;border-radius:4px;font-size:8px;color:#0369a1;">准确</div>
+        </div>
+      </div>
+      <div style="background:#f0fdf4;padding:12px;border-radius:8px;border:1px solid #22c55e;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <div style="font-weight:bold;color:#15803d;">✍️ 公文润色Prompt</div>
+          <div style="background:#eab308;color:white;padding:2px 6px;border-radius:4px;font-size:9px;">v1.5</div>
+        </div>
+        <div style="font-size:9px;color:#16a34a;line-height:1.6;background:white;padding:8px;border-radius:6px;">
+          请对以下公文内容进行润色，保持专业性，使用规范的公文用语，注意格式要求...
+        </div>
+        <div style="display:flex;gap:4px;margin-top:8px;">
+          <div style="background:#fef3c7;padding:4px 6px;border-radius:4px;font-size:8px;color:#854d0e;">规范</div>
+          <div style="background:#fef3c7;padding:4px 6px;border-radius:4px;font-size:8px;color:#854d0e;">专业</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">功能清单</div>
+  <div style="background:white;border-radius:8px;padding:12px;border:1px solid #22c55e;font-size:11px;">
+    <div style="font-weight:bold;color:#15803d;margin-bottom:6px;">🆕 新增页面核心功能</div>
+    <ul style="font-size:10px;color:#16a34a;margin-left:12px;display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+      <li>三种模板类型切换（公文/提示词/Agent）</li>
+      <li>模板分类树形导航</li>
+      <li>模板搜索功能</li>
+      <li>模板卡片展示（预览/标签/使用次数）</li>
+      <li>新建/导入/编辑模板</li>
+      <li>模板实例化配置</li>
+      <li>关联知识库选择</li>
+      <li>AI增强选项</li>
+      <li>权限设置</li>
+      <li>已创建实例列表</li>
+      <li>模板版本管理</li>
+      <li>模板使用统计</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section">
+  <div class="options">
+    <div class="option" data-choice="approve" onclick="toggleSelect(this)">
+      <div class="letter">✓</div>
+      <div class="content">
+        <h3>确认此设计</h3>
+        <p>继续下一页面</p>
+      </div>
+    </div>
+    <div class="option" data-choice="modify" onclick="toggleSelect(this)">
+      <div class="letter">✎</div>
+      <div class="content">
+        <h3>需要调整</h3>
+        <p>请在终端说明修改需求</p>
+      </div>
+    </div>
+  </div>
+</div>

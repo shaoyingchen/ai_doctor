@@ -1,0 +1,213 @@
+<h2>页面设计 03：智能写作</h2>
+<p class="subtitle">公文起草模板，模板实例化，历史参考，格式校验</p>
+
+<div class="section">
+  <div class="mockup">
+    <div class="mockup-header">智能写作 - 完整布局</div>
+    <div class="mockup-body" style="background:#f0fdf4;padding:16px;font-size:11px;">
+
+      <div style="display:flex;gap:12px;">
+        <!-- 左侧：模板和配置面板 -->
+        <div style="width:260px;display:flex;flex-direction:column;gap:8px;">
+
+          <!-- 模板选择 -->
+          <div style="background:white;border-radius:12px;padding:12px;border:2px solid #22c55e;">
+            <div style="font-size:10px;font-weight:bold;color:#15803d;margin-bottom:8px;display:flex;align-items:center;gap:4px;">
+              📝 写作模板
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="background:#22c55e;color:white;padding:8px;border-radius:8px;font-size:10px;">
+                ✓ 会议通知
+              </div>
+              <div style="background:#f0fdf4;border:1px solid #22c55e;padding:8px;border-radius:8px;font-size:10px;color:#15803d;">
+                请示报告
+              </div>
+              <div style="background:#f0fdf4;border:1px solid #22c55e;padding:8px;border-radius:8px;font-size:10px;color:#15803d;">
+                工作方案
+              </div>
+              <div style="background:#f0fdf4;border:1px solid #22c55e;padding:8px;border-radius:8px;font-size:10px;color:#15803d;">
+                任免通知
+              </div>
+              <div style="background:#f0fdf4;border:1px solid #22c55e;padding:8px;border-radius:8px;font-size:10px;color:#15803d;">
+                函件
+              </div>
+              <div style="background:#f0fdf4;border:1px solid #22c55e;padding:8px;border-radius:8px;font-size:10px;color:#15803d;">
+                + 自定义模板
+              </div>
+            </div>
+          </div>
+
+          <!-- 当前任务配置 -->
+          <div style="background:#fefce8;border-radius:12px;padding:12px;border:1px solid #eab308;">
+            <div style="font-size:10px;font-weight:bold;color:#a16207;margin-bottom:8px;">⚙️ 当前任务配置</div>
+            <div style="font-size:9px;color:#854d0e;margin-bottom:4px;">模板：会议通知</div>
+            <div style="font-size:9px;color:#854d0e;margin-bottom:8px;">状态：待生成</div>
+
+            <!-- 配置项 -->
+            <div style="background:white;border-radius:6px;padding:8px;margin-bottom:6px;">
+              <div style="font-size:9px;color:#15803d;font-weight:bold;margin-bottom:4px;">发文单位</div>
+              <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:4px;padding:4px;font-size:8px;color:#16a34a;">上海市XX局</div>
+            </div>
+            <div style="background:white;border-radius:6px;padding:8px;margin-bottom:6px;">
+              <div style="font-size:9px;color:#15803d;font-weight:bold;margin-bottom:4px;">会议主题</div>
+              <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:4px;padding:4px;font-size:8px;color:#16a34a;">数字化转型工作推进会</div>
+            </div>
+            <div style="background:white;border-radius:6px;padding:8px;">
+              <div style="font-size:9px;color:#15803d;font-weight:bold;margin-bottom:4px;">会议时间</div>
+              <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:4px;padding:4px;font-size:8px;color:#16a34a;">2024-04-15 09:00</div>
+            </div>
+          </div>
+
+          <!-- 参考知识库 -->
+          <div style="background:white;border-radius:12px;padding:12px;border:2px solid #22c55e;">
+            <div style="font-size:10px;font-weight:bold;color:#15803d;margin-bottom:8px;">📚 参考知识库</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="background:#22c55e;color:white;padding:6px;border-radius:6px;font-size:9px;">✓ 公共知识库</div>
+              <div style="background:#f0fdf4;border:1px solid #22c55e;padding:6px;border-radius:6px;font-size:9px;color:#15803d;">单位知识库</div>
+              <div style="background:#f0fdf4;border:1px solid #22c55e;padding:6px;border-radius:6px;font-size:9px;color:#15803d;">历史公文库</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 中间：编辑区 -->
+        <div style="flex:1;background:white;border-radius:12px;padding:12px;border:2px solid #22c55e;display:flex;flex-direction:column;">
+          <!-- 编辑器工具栏 -->
+          <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;border-bottom:1px solid #e2e8f0;margin-bottom:8px;">
+            <div style="display:flex;gap:4px;">
+              <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:4px;padding:4px 8px;font-size:9px;color:#15803d;">文件</div>
+              <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:4px;padding:4px 8px;font-size:9px;color:#15803d;">编辑</div>
+              <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:4px;padding:4px 8px;font-size:9px;color:#15803d;">视图</div>
+              <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:4px;padding:4px 8px;font-size:9px;color:#15803d;">格式</div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <div style="background:#0ea5e9;color:white;padding:6px 12px;border-radius:6px;font-size:9px;font-weight:bold;">🤖 AI生成</div>
+              <div style="background:#22c55e;color:white;padding:6px 12px;border-radius:6px;font-size:9px;font-weight:bold;">保存草稿</div>
+            </div>
+          </div>
+
+          <!-- 文档预览区 -->
+          <div style="flex:1;background:#f0fdf4;border-radius:8px;padding:20px;overflow:auto;">
+            <div style="background:white;padding:20px;border-radius:8px;border:1px solid #22c55e;max-width:600px;margin:auto;">
+              <!-- 公文头部 -->
+              <div style="text-align:center;border-bottom:2px solid #22c55e;padding-bottom:12px;margin-bottom:16px;">
+                <div style="font-size:14px;font-weight:bold;color:#15803d;letter-spacing:2px;">上海市XX局会议通知</div>
+                <div style="font-size:9px;color:#16a34a;margin-top:4px;">[2024] 第XX号</div>
+              </div>
+
+              <!-- 公文正文 -->
+              <div style="font-size:10px;color:#15803d;line-height:1.8;">
+                <p style="margin-bottom:8px;">各相关单位：</p>
+                <p style="margin-bottom:8px;">为进一步推进数字化转型工作，经研究决定召开数字化转型工作推进会，现将有关事项通知如下：</p>
+                <p style="margin-bottom:4px;font-weight:bold;">一、会议时间</p>
+                <p style="margin-bottom:8px;">2024年4月15日（星期一）上午9:00</p>
+                <p style="margin-bottom:4px;font-weight:bold;">二、会议地点</p>
+                <p style="margin-bottom:8px;background:#e0f2fe;padding:8px;border-radius:6px;color:#0369a1;font-size:9px;">📍 待AI生成补充...</p>
+                <p style="margin-bottom:4px;font-weight:bold;">三、参会人员</p>
+                <p style="margin-bottom:8px;background:#e0f2fe;padding:8px;border-radius:6px;color:#0369a1;font-size:9px;">👥 待AI生成补充...</p>
+              </div>
+
+              <!-- 公文底部 -->
+              <div style="margin-top:20px;padding-top:12px;border-top:1px solid #e2e8f0;">
+                <div style="font-size:9px;color:#16a34a;">上海市XX局</div>
+                <div style="font-size:9px;color:#16a34a;">2024年4月X日</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI辅助工具栏 -->
+          <div style="display:flex;gap:6px;padding-top:8px;border-top:1px solid #e2e8f0;margin-top:8px;">
+            <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:6px;padding:6px 10px;font-size:9px;color:#15803d;">✨ 智能续写</div>
+            <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:6px;padding:6px 10px;font-size:9px;color:#15803d;">📝 内容润色</div>
+            <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:6px;padding:6px 10px;font-size:9px;color:#15803d;">🔍 格式校验</div>
+            <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:6px;padding:6px 10px;font-size:9px;color:#15803d;">📚 参考历史</div>
+          </div>
+        </div>
+
+        <!-- 右侧：参考和历史面板 -->
+        <div style="width:200px;display:flex;flex-direction:column;gap:8px;">
+
+          <!-- 历史参考 -->
+          <div style="background:white;border-radius:12px;padding:12px;border:2px solid #22c55e;">
+            <div style="font-size:10px;font-weight:bold;color:#15803d;margin-bottom:8px;">📜 历史公文参考</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="background:#f0fdf4;border:1px solid #22c55e;padding:6px;border-radius:6px;font-size:9px;color:#15803d;">
+                <div style="font-weight:bold;">会议通知-2023Q4</div>
+                <div style="font-size:8px;color:#16a34a;">相似度 92%</div>
+              </div>
+              <div style="background:#f0fdf4;border:1px solid #22c55e;padding:6px;border-radius:6px;font-size:9px;color:#15803d;">
+                <div style="font-weight:bold;">季度总结会议</div>
+                <div style="font-size:8px;color:#16a34a;">相似度 78%</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 格式校验状态 -->
+          <div style="background:#fefce8;border-radius:12px;padding:12px;border:1px solid #eab308;">
+            <div style="font-size:10px;font-weight:bold;color:#a16207;margin-bottom:8px;">✅ 格式校验</div>
+            <div style="font-size:9px;color:#854d0e;">• 标题格式正确</div>
+            <div style="font-size:9px;color:#854d0e;">• 发文单位完整</div>
+            <div style="font-size:9px;color:#f59e0b;">⚠ 时间待补充</div>
+            <div style="font-size:9px;color:#f59e0b;">⚠ 地点待补充</div>
+          </div>
+
+          <!-- AI生成记录 -->
+          <div style="background:white;border-radius:12px;padding:12px;border:2px solid #22c55e;">
+            <div style="font-size:10px;font-weight:bold;color:#15803d;margin-bottom:8px;">🤖 AI生成记录</div>
+            <div style="font-size:9px;color:#16a34a;">生成次数：2</div>
+            <div style="font-size:9px;color:#16a34a;">参考文档：3</div>
+            <div style="background:#f0fdf4;padding:6px;border-radius:6px;margin-top:6px;font-size:8px;color:#15803d;">
+              最近：2024-04-02 10:30
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">功能模块清单</div>
+  <div style="background:white;border-radius:8px;padding:12px;border:1px solid #22c55e;font-size:11px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div>
+        <div style="font-weight:bold;color:#15803d;margin-bottom:4px;">✅ 已有功能（增强）</div>
+        <ul style="font-size:10px;color:#16a34a;margin-left:12px;">
+          <li>模板选择 → 保持，增加自定义模板</li>
+          <li>编辑区 → 增加AI辅助工具栏</li>
+          <li>生成按钮 → 改为"AI生成"</li>
+        </ul>
+      </div>
+      <div>
+        <div style="font-weight:bold;color:#15803d;margin-bottom:4px;">🆕 新增功能</div>
+        <ul style="font-size:10px;color:#16a34a;margin-left:12px;">
+          <li>任务配置面板（发文单位、主题等）</li>
+          <li>参考知识库选择</li>
+          <li>历史公文参考推荐（相似度匹配）</li>
+          <li>格式校验状态实时显示</li>
+          <li>AI辅助工具：续写、润色、校验</li>
+          <li>AI生成记录追踪</li>
+          <li>保存草稿功能</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="options">
+    <div class="option" data-choice="approve" onclick="toggleSelect(this)">
+      <div class="letter">✓</div>
+      <div class="content">
+        <h3>确认此设计</h3>
+        <p>继续下一页面</p>
+      </div>
+    </div>
+    <div class="option" data-choice="modify" onclick="toggleSelect(this)">
+      <div class="letter">✎</div>
+      <div class="content">
+        <h3>需要调整</h3>
+        <p>请在终端说明修改需求</p>
+      </div>
+    </div>
+  </div>
+</div>

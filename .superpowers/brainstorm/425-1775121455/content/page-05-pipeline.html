@@ -1,0 +1,352 @@
+<h2>页面设计 05：文档解析流水线【新增】</h2>
+<p class="subtitle">混合式展示：流程图概览 + 任务列表详情，可视化流水线进度</p>
+
+<div class="section">
+  <div class="mockup">
+    <div class="mockup-header">文档解析流水线 - 完整布局</div>
+    <div class="mockup-body" style="background:#f0fdf4;padding:16px;font-size:11px;">
+
+      <!-- 顶部统计卡片 -->
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <div style="background:white;border-radius:12px;padding:12px;border:2px solid #22c55e;flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="background:#f0fdf4;padding:8px;border-radius:8px;font-size:18px;color:#22c55e;">📥</div>
+            <div>
+              <div style="font-size:10px;color:#16a34a;">待处理</div>
+              <div style="font-size:16px;font-weight:bold;color:#15803d;">24</div>
+            </div>
+          </div>
+        </div>
+        <div style="background:white;border-radius:12px;padding:12px;border:2px solid #0ea5e9;flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="background:#e0f2fe;padding:8px;border-radius:8px;font-size:18px;color:#0ea5e9;">⚙️</div>
+            <div>
+              <div style="font-size:10px;color:#0284c7;">处理中</div>
+              <div style="font-size:16px;font-weight:bold;color:#0369a1;">8</div>
+            </div>
+          </div>
+        </div>
+        <div style="background:white;border-radius:12px;padding:12px;border:2px solid #22c55e;flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="background:#dcfce7;padding:8px;border-radius:8px;font-size:18px;color:#22c55e;">✅</div>
+            <div>
+              <div style="font-size:10px;color:#16a34a;">已完成</div>
+              <div style="font-size:16px;font-weight:bold;color:#15803d;">156</div>
+            </div>
+          </div>
+        </div>
+        <div style="background:white;border-radius:12px;padding:12px;border:2px solid #ef4444;flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="background:#fef2f2;padding:8px;border-radius:8px;font-size:18px;color:#ef4444;">❌</div>
+            <div>
+              <div style="font-size:10px;color:#dc2626;">失败</div>
+              <div style="font-size:16px;font-weight:bold;color:#b91c1c;">3</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;">
+        <!-- 左侧：流程图概览 -->
+        <div style="width:400px;background:white;border-radius:12px;padding:16px;border:2px solid #22c55e;">
+          <div style="font-size:11px;font-weight:bold;color:#15803d;margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+            🔄 解析流水线流程
+          </div>
+
+          <!-- 流程图 -->
+          <div style="position:relative;padding:20px 0;">
+            <!-- 节点行 -->
+            <div style="display:flex;justify-content:space-between;align-items:center;position:relative;">
+              <!-- 连接线 -->
+              <div style="position:absolute;top:50%;left:40px;right:40px;height:4px;background:#e2e8f0;border-radius:2px;z-index:0;"></div>
+              <!-- 已完成的进度线 -->
+              <div style="position:absolute;top:50%;left:40px;width:60%;height:4px;background:#22c55e;border-radius:2px;z-index:1;"></div>
+
+              <!-- 节点1：上传 -->
+              <div style="z-index:2;text-align:center;">
+                <div style="width:40px;height:40px;background:#22c55e;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;margin-bottom:4px;">📥</div>
+                <div style="font-size:9px;color:#15803d;font-weight:bold;">上传</div>
+                <div style="font-size:8px;color:#16a34a;">156 完成</div>
+              </div>
+
+              <!-- 节点2：解析 -->
+              <div style="z-index:2;text-align:center;">
+                <div style="width:40px;height:40px;background:#0ea5e9;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;margin-bottom:4px;animation:pulse 1s infinite;">📄</div>
+                <div style="font-size:9px;color:#0369a1;font-weight:bold;">解析</div>
+                <div style="font-size:8px;color:#0284c7;">8 进行中</div>
+              </div>
+
+              <!-- 节点3：分块 -->
+              <div style="z-index:2;text-align:center;">
+                <div style="width:40px;height:40px;background:#e2e8f0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;color:#94a3b8;margin-bottom:4px;">📦</div>
+                <div style="font-size:9px;color:#64748b;font-weight:bold;">分块</div>
+                <div style="font-size:8px;color:#94a3b8;">等待中</div>
+              </div>
+
+              <!-- 节点4：向量化 -->
+              <div style="z-index:2;text-align:center;">
+                <div style="width:40px;height:40px;background:#e2e8f0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;color:#94a3b8;margin-bottom:4px;">🧠</div>
+                <div style="font-size:9px;color:#64748b;font-weight:bold;">向量化</div>
+                <div style="font-size:8px;color:#94a3b8;">等待中</div>
+              </div>
+
+              <!-- 节点5：入库 -->
+              <div style="z-index:2;text-align:center;">
+                <div style="width:40px;height:40px;background:#e2e8f0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;color:#94a3b8;margin-bottom:4px;">📚</div>
+                <div style="font-size:9px;color:#64748b;font-weight:bold;">入库</div>
+                <div style="font-size:8px;color:#94a3b8;">等待中</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 当前处理文档 -->
+          <div style="background:#e0f2fe;border-radius:8px;padding:10px;margin-top:12px;border:1px solid #0ea5e9;">
+            <div style="font-size:10px;font-weight:bold;color:#0369a1;margin-bottom:6px;">正在处理</div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <div style="background:#fef2f2;padding:4px;border-radius:4px;font-size:9px;color:#dc2626;">PDF</div>
+              <div style="flex:1;font-size:9px;color:#0284c7;">数字化转型指南.pdf</div>
+              <div style="background:#0ea5e9;color:white;padding:4px 8px;border-radius:4px;font-size:9px;">67%</div>
+            </div>
+            <div style="margin-top:6px;height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;">
+              <div style="width:67%;height:100%;background:#0ea5e9;border-radius:3px;"></div>
+            </div>
+          </div>
+
+          <!-- 资源监控 -->
+          <div style="background:#f0fdf4;border-radius:8px;padding:10px;margin-top:8px;border:1px solid #22c55e;">
+            <div style="font-size:10px;font-weight:bold;color:#15803d;margin-bottom:6px;">资源监控</div>
+            <div style="display:flex;gap:8px;">
+              <div style="flex:1;">
+                <div style="font-size:8px;color:#16a34a;">CPU: 45%</div>
+                <div style="height:4px;background:#e2e8f0;border-radius:2px;margin-top:2px;overflow:hidden;">
+                  <div style="width:45%;height:100%;background:#22c55e;"></div>
+                </div>
+              </div>
+              <div style="flex:1;">
+                <div style="font-size:8px;color:#16a34a;">内存: 62%</div>
+                <div style="height:4px;background:#e2e8f0;border-radius:2px;margin-top:2px;overflow:hidden;">
+                  <div style="width:62%;height:100%;background:#0ea5e9;"></div>
+                </div>
+              </div>
+              <div style="flex:1;">
+                <div style="font-size:8px;color:#16a34a;">队列: 8</div>
+                <div style="height:4px;background:#e2e8f0;border-radius:2px;margin-top:2px;overflow:hidden;">
+                  <div style="width:40%;height:100%;background:#eab308;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧：任务列表详情 -->
+        <div style="flex:1;background:white;border-radius:12px;border:2px solid #22c55e;overflow:hidden;">
+          <!-- 筛选和操作栏 -->
+          <div style="background:#f0fdf4;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <div style="display:flex;gap:6px;">
+              <div style="background:#22c55e;color:white;padding:6px 10px;border-radius:6px;font-size:9px;">全部</div>
+              <div style="background:white;border:1px solid #22c55e;padding:6px 10px;border-radius:6px;font-size:9px;color:#15803d;">进行中</div>
+              <div style="background:white;border:1px solid #22c55e;padding:6px 10px;border-radius:6px;font-size:9px;color:#15803d;">已完成</div>
+              <div style="background:white;border:1px solid #22c55e;padding:6px 10px;border-radius:6px;font-size:9px;color:#15803d;">失败</div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <div style="background:#22c55e;color:white;padding:6px 10px;border-radius:6px;font-size:9px;font-weight:bold;">+ 新增任务</div>
+              <div style="background:white;border:1px solid #22c55e;padding:6px 10px;border-radius:6px;font-size:9px;color:#15803d;">⚙ 配置</div>
+            </div>
+          </div>
+
+          <!-- 任务列表 -->
+          <div style="font-size:10px;overflow-y:auto;max-height:400px;">
+            <!-- 任务行：进行中 -->
+            <div style="padding:10px;border-bottom:1px solid #e2e8f0;background:#e0f2fe;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <div style="background:#0ea5e9;color:white;padding:4px;border-radius:4px;font-size:9px;">⏳</div>
+                  <div style="font-weight:bold;color:#0369a1;">数字化转型指南.pdf</div>
+                  <div style="background:#fef2f2;padding:2px 4px;border-radius:3px;font-size:8px;color:#dc2626;">PDF</div>
+                </div>
+                <div style="font-size:9px;color:#0284c7;">2024-04-02 10:30</div>
+              </div>
+              <!-- 进度条 -->
+              <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+                <div style="flex:1;display:flex;gap:2px;">
+                  <div style="flex:1;background:#22c55e;height:8px;border-radius:2px;"></div>
+                  <div style="flex:1;background:#22c55e;height:8px;border-radius:2px;"></div>
+                  <div style="flex:1;background:#0ea5e9;height:8px;border-radius:2px;"></div>
+                  <div style="flex:1;background:#e2e8f0;height:8px;border-radius:2px;"></div>
+                  <div style="flex:1;background:#e2e8f0;height:8px;border-radius:2px;"></div>
+                </div>
+                <div style="background:#0ea5e9;color:white;padding:2px 6px;border-radius:4px;font-size:9px;">67%</div>
+              </div>
+              <!-- 状态标签 -->
+              <div style="display:flex;gap:4px;">
+                <div style="background:#dcfce7;padding:2px 6px;border-radius:3px;font-size:8px;color:#15803d;">✓ 上传完成</div>
+                <div style="background:#dcfce7;padding:2px 6px;border-radius:3px;font-size:8px;color:#15803d;">✓ 解析完成</div>
+                <div style="background:#e0f2fe;padding:2px 6px;border-radius:3px;font-size:8px;color:#0369a1;">⏳ 分块中</div>
+                <div style="background:#f0fdf4;padding:2px 6px;border-radius:3px;font-size:8px;color:#94a3b8;">○ 向量化</div>
+                <div style="background:#f0fdf4;padding:2px 6px;border-radius:3px;font-size:8px;color:#94a3b8;">○ 入库</div>
+              </div>
+              <!-- 操作 -->
+              <div style="display:flex;gap:6px;margin-top:6px;">
+                <div style="background:#fef3c7;border:1px solid #eab308;padding:4px 8px;border-radius:4px;font-size:8px;color:#854d0e;">⏸ 暂停</div>
+                <div style="background:#fef2f2;border:1px solid #ef4444;padding:4px 8px;border-radius:4px;font-size:8px;color:#dc2626;">⏹ 取消</div>
+                <div style="background:#e0f2fe;padding:4px 8px;border-radius:4px;font-size:8px;color:#0369a1;">📋 查看日志</div>
+              </div>
+            </div>
+
+            <!-- 任务行：已完成 -->
+            <div style="padding:10px;border-bottom:1px solid #e2e8f0;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <div style="background:#22c55e;color:white;padding:4px;border-radius:4px;font-size:9px;">✅</div>
+                  <div style="font-weight:bold;color:#15803d;">网络安全管理制度.docx</div>
+                  <div style="background:#dbeafe;padding:2px 4px;border-radius:3px;font-size:8px;color:#1d4ed8;">DOC</div>
+                </div>
+                <div style="font-size:9px;color:#16a34a;">2024-04-01 14:20</div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+                <div style="flex:1;display:flex;gap:2px;">
+                  <div style="flex:1;background:#22c55e;height:8px;border-radius:2px;"></div>
+                  <div style="flex:1;background:#22c55e;height:8px;border-radius:2px;"></div>
+                  <div style="flex:1;background:#22c55e;height:8px;border-radius:2px;"></div>
+                  <div style="flex:1;background:#22c55e;height:8px;border-radius:2px;"></div>
+                  <div style="flex:1;background:#22c55e;height:8px;border-radius:2px;"></div>
+                </div>
+                <div style="background:#22c55e;color:white;padding:2px 6px;border-radius:4px;font-size:9px;">100%</div>
+              </div>
+              <div style="display:flex;gap:4px;">
+                <div style="background:#dcfce7;padding:2px 6px;border-radius:3px;font-size:8px;color:#15803d;">✓ 全部完成</div>
+                <div style="background:#e0f2fe;padding:2px 6px;border-radius:3px;font-size:8px;color:#0369a1;">入库: 公共知识库</div>
+              </div>
+              <div style="display:flex;gap:6px;margin-top:6px;">
+                <div style="background:#f0fdf4;border:1px solid #22c55e;padding:4px 8px;border-radius:4px;font-size:8px;color:#15803d;">👁 查看结果</div>
+                <div style="background:#f0fdf4;border:1px solid #22c55e;padding:4px 8px;border-radius:4px;font-size:8px;color:#15803d;">↻ 重新处理</div>
+              </div>
+            </div>
+
+            <!-- 任务行：失败 -->
+            <div style="padding:10px;border-bottom:1px solid #e2e8f0;background:#fef2f2;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <div style="background:#ef4444;color:white;padding:4px;border-radius:4px;font-size:9px;">❌</div>
+                  <div style="font-weight:bold;color:#b91c1c;">损坏文件.pdf</div>
+                  <div style="background:#fef2f2;padding:2px 4px;border-radius:3px;font-size:8px;color:#dc2626;">PDF</div>
+                </div>
+                <div style="font-size:9px;color:#dc2626;">2024-03-30 09:15</div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+                <div style="flex:1;display:flex;gap:2px;">
+                  <div style="flex:1;background:#22c55e;height:8px;border-radius:2px;"></div>
+                  <div style="flex:1;background:#ef4444;height:8px;border-radius:2px;"></div>
+                  <div style="flex:1;background:#e2e8f0;height:8px;border-radius:2px;"></div>
+                  <div style="flex:1;background:#e2e8f0;height:8px;border-radius:2px;"></div>
+                  <div style="flex:1;background:#e2e8f0;height:8px;border-radius:2px;"></div>
+                </div>
+                <div style="background:#ef4444;color:white;padding:2px 6px;border-radius:4px;font-size:9px;">失败</div>
+              </div>
+              <div style="background:#fef2f2;padding:6px;border-radius:4px;font-size:9px;color:#dc2626;border:1px solid #fecaca;">
+                错误原因：文件格式损坏，无法解析第3页
+              </div>
+              <div style="display:flex;gap:6px;margin-top:6px;">
+                <div style="background:#22c55e;color:white;padding:4px 8px;border-radius:4px;font-size:8px;">↻ 重试</div>
+                <div style="background:#fef2f2;border:1px solid #ef4444;padding:4px 8px;border-radius:4px;font-size:8px;color:#dc2626;">🗑 删除</div>
+                <div style="background:#e0f2fe;padding:4px 8px;border-radius:4px;font-size:8px;color:#0369a1;">📋 详细日志</div>
+              </div>
+            </div>
+
+            <!-- 任务行：待处理 -->
+            <div style="padding:10px;border-bottom:1px solid #e2e8f0;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <div style="background:#f0fdf4;border:1px solid #22c55e;padding:4px;border-radius:4px;font-size:9px;color:#15803d;">○</div>
+                  <div style="font-weight:bold;color:#15803d;">人工智能发展规划.pdf</div>
+                  <div style="background:#fef2f2;padding:2px 4px;border-radius:3px;font-size:8px;color:#dc2626;">PDF</div>
+                </div>
+                <div style="font-size:9px;color:#16a34a;">2024-04-02 11:00</div>
+              </div>
+              <div style="display:flex;gap:4px;">
+                <div style="background:#f0fdf4;padding:2px 6px;border-radius:3px;font-size:8px;color:#16a34a;">队列位置: #3</div>
+                <div style="background:#f0fdf4;padding:2px 6px;border-radius:3px;font-size:8px;color:#16a34a;">预计开始: 10:45</div>
+              </div>
+              <div style="display:flex;gap:6px;margin-top:6px;">
+                <div style="background:#22c55e;color:white;padding:4px 8px;border-radius:4px;font-size:8px;">▶ 立即开始</div>
+                <div style="background:#f0fdf4;border:1px solid #22c55e;padding:4px 8px;border-radius:4px;font-size:8px;color:#15803d;">⏸ 延后</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">解析引擎配置选项（弹出面板）</div>
+  <div style="background:white;border-radius:8px;padding:12px;border:1px solid #22c55e;font-size:11px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+      <div style="background:#f0fdf4;padding:10px;border-radius:8px;border:1px solid #22c55e;">
+        <div style="font-size:10px;font-weight:bold;color:#15803d;margin-bottom:6px;">PDF解析引擎</div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <div style="background:#22c55e;color:white;padding:6px;border-radius:6px;font-size:9px;">✓ MinerU (推荐)</div>
+          <div style="background:white;border:1px solid #22c55e;padding:6px;border-radius:6px;font-size:9px;color:#15803d;">PyMuPDF</div>
+          <div style="background:white;border:1px solid #22c55e;padding:6px;border-radius:6px;font-size:9px;color:#15803d;">Paddle-OCR</div>
+        </div>
+      </div>
+      <div style="background:#f0fdf4;padding:10px;border-radius:8px;border:1px solid #22c55e;">
+        <div style="font-size:10px;font-weight:bold;color:#15803d;margin-bottom:6px;">分块策略</div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <div style="background:#22c55e;color:white;padding:6px;border-radius:6px;font-size:9px;">✓ 智能分块</div>
+          <div style="background:white;border:1px solid #22c55e;padding:6px;border-radius:6px;font-size:9px;color:#15803d;">固定大小</div>
+          <div style="background:white;border:1px solid #22c55e;padding:6px;border-radius:6px;font-size:9px;color:#15803d;">段落分块</div>
+        </div>
+      </div>
+      <div style="background:#f0fdf4;padding:10px;border-radius:8px;border:1px solid #22c55e;">
+        <div style="font-size:10px;font-weight:bold;color:#15803d;margin-bottom:6px;">向量化模型</div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <div style="background:#22c55e;color:white;padding:6px;border-radius:6px;font-size:9px;">✓ BGE-large</div>
+          <div style="background:white;border:1px solid #22c55e;padding:6px;border-radius:6px;font-size:9px;color:#15803d;">text-embedding</div>
+          <div style="background:white;border:1px solid #22c55e;padding:6px;border-radius:6px;font-size:9px;color:#15803d;">自定义</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">功能清单</div>
+  <div style="background:white;border-radius:8px;padding:12px;border:1px solid #22c55e;font-size:11px;">
+    <div style="font-weight:bold;color:#15803d;margin-bottom:6px;">🆕 新增页面核心功能</div>
+    <ul style="font-size:10px;color:#16a34a;margin-left:12px;display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+      <li>流程图概览（5个节点可视化）</li>
+      <li>当前处理文档进度显示</li>
+      <li>资源监控（CPU/内存/队列）</li>
+      <li>任务列表筛选（状态分类）</li>
+      <li>单任务进度条（分阶段显示）</li>
+      <li>任务控制（暂停/取消/重试）</li>
+      <li>错误详情展示</li>
+      <li>任务日志查看</li>
+      <li>解析引擎配置选择</li>
+      <li>分块策略配置</li>
+      <li>向量化模型选择</li>
+      <li>队列优先级调整</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section">
+  <div class="options">
+    <div class="option" data-choice="approve" onclick="toggleSelect(this)">
+      <div class="letter">✓</div>
+      <div class="content">
+        <h3>确认此设计</h3>
+        <p>继续下一页面</p>
+      </div>
+    </div>
+    <div class="option" data-choice="modify" onclick="toggleSelect(this)">
+      <div class="letter">✎</div>
+      <div class="content">
+        <h3>需要调整</h3>
+        <p>请在终端说明修改需求</p>
+      </div>
+    </div>
+  </div>
+</div>

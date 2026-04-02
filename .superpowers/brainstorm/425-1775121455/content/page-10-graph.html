@@ -1,0 +1,320 @@
+<h2>页面设计 10：知识图谱可视化【新增】</h2>
+<p class="subtitle">实体关系分析：人物、组织、事件的关系网络交互探索</p>
+
+<div class="section">
+  <div class="mockup">
+    <div class="mockup-header">知识图谱可视化 - 完整布局</div>
+    <div class="mockup-body" style="background:#0f172a;padding:16px;font-size:11px;">
+
+      <div style="display:flex;gap:12px;height:500px;">
+        <!-- 左侧：控制面板 -->
+        <div style="width:240px;background:#1e293b;border-radius:12px;padding:12px;border:1px solid #334155;display:flex;flex-direction:column;">
+          <div style="font-size:11px;font-weight:bold;color:#a5b4fc;margin-bottom:12px;">🎛️ 图谱控制</div>
+
+          <!-- 实体类型筛选 -->
+          <div style="margin-bottom:12px;">
+            <div style="font-size:10px;font-weight:bold;color:#94a3b8;margin-bottom:8px;">实体类型</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="background:#3b82f6;padding:8px;border-radius:6px;font-size:10px;color:white;display:flex;justify-content:space-between;align-items:center;">
+                <span>👤 人物</span>
+                <span style="background:#1e40af;padding:2px 6px;border-radius:4px;font-size:9px;">128</span>
+              </div>
+              <div style="background:#7c3aed;padding:8px;border-radius:6px;font-size:10px;color:white;display:flex;justify-content:space-between;align-items:center;">
+                <span>🏛️ 组织</span>
+                <span style="background:#5b21b6;padding:2px 6px;border-radius:4px;font-size:9px;">56</span>
+              </div>
+              <div style="background:#22c55e;padding:8px;border-radius:6px;font-size:10px;color:white;display:flex;justify-content:space-between;align-items:center;">
+                <span>📅 事件</span>
+                <span style="background:#15803d;padding:2px 6px;border-radius:4px;font-size:9px;">89</span>
+              </div>
+              <div style="background:#eab308;padding:8px;border-radius:6px;font-size:10px;color:white;display:flex;justify-content:space-between;align-items:center;">
+                <span>📍 地点</span>
+                <span style="background:#a16207;padding:2px 6px;border-radius:4px;font-size:9px;">34</span>
+              </div>
+              <div style="background:#64748b;padding:8px;border-radius:6px;font-size:10px;color:#e2e8f0;display:flex;justify-content:space-between;align-items:center;">
+                <span>📋 文档</span>
+                <span style="background:#475569;padding:2px 6px;border-radius:4px;font-size:9px;">245</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 关系类型筛选 -->
+          <div style="margin-bottom:12px;">
+            <div style="font-size:10px;font-weight:bold;color:#94a3b8;margin-bottom:8px;">关系类型</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="background:#334155;padding:6px;border-radius:6px;font-size:9px;color:#e2e8f0;display:flex;justify-content:space-between;">
+                <span>隶属关系</span>
+                <input type="checkbox" checked style="width:12px;height:12px;">
+              </div>
+              <div style="background:#334155;padding:6px;border-radius:6px;font-size:9px;color:#e2e8f0;display:flex;justify-content:space-between;">
+                <span>协作关系</span>
+                <input type="checkbox" checked style="width:12px;height:12px;">
+              </div>
+              <div style="background:#334155;padding:6px;border-radius:6px;font-size:9px;color:#e2e8f0;display:flex;justify-content:space-between;">
+                <span>引用关系</span>
+                <input type="checkbox" checked style="width:12px;height:12px;">
+              </div>
+              <div style="background:#334155;padding:6px;border-radius:6px;font-size:9px;color:#e2e8f0;display:flex;justify-content:space-between;">
+                <span>时间关联</span>
+                <input type="checkbox" style="width:12px;height:12px;">
+              </div>
+            </div>
+          </div>
+
+          <!-- 显示设置 -->
+          <div style="margin-bottom:12px;">
+            <div style="font-size:10px;font-weight:bold;color:#94a3b8;margin-bottom:8px;">显示设置</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="background:#334155;padding:8px;border-radius:6px;">
+                <div style="font-size:9px;color:#94a3b8;margin-bottom:4px;">节点大小</div>
+                <div style="display:flex;gap:4px;">
+                  <div style="background:#22c55e;color:white;padding:4px 8px;border-radius:4px;font-size:8px;">按重要性</div>
+                  <div style="background:#475569;padding:4px 8px;border-radius:4px;font-size:8px;color:#94a3b8;">统一</div>
+                </div>
+              </div>
+              <div style="background:#334155;padding:8px;border-radius:6px;">
+                <div style="font-size:9px;color:#94a3b8;margin-bottom:4px;">布局方式</div>
+                <div style="display:flex;gap:4px;">
+                  <div style="background:#22c55e;color:white;padding:4px 8px;border-radius:4px;font-size:8px;">力导向</div>
+                  <div style="background:#475569;padding:4px 8px;border-radius:4px;font-size:8px;color:#94a3b8;">环形</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 搜索实体 -->
+          <div style="margin-top:auto;">
+            <div style="background:#334155;border-radius:8px;padding:8px;display:flex;gap:6px;align-items:center;">
+              <span style="color:#64748b;">🔍</span>
+              <span style="font-size:10px;color:#64748b;">搜索实体...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 中间：图谱可视化区域 -->
+        <div style="flex:1;background:#1e293b;border-radius:12px;border:1px solid #334155;position:relative;overflow:hidden;">
+          <!-- 工具栏 -->
+          <div style="position:absolute;top:12px;right:12px;display:flex;gap:6px;z-index:10;">
+            <div style="background:#334155;padding:6px;border-radius:6px;font-size:10px;color:#e2e8f0;">🔍+</div>
+            <div style="background:#334155;padding:6px;border-radius:6px;font-size:10px;color:#e2e8f0;">🔍-</div>
+            <div style="background:#334155;padding:6px;border-radius:6px;font-size:10px;color:#e2e8f0;">↻</div>
+            <div style="background:#334155;padding:6px;border-radius:6px;font-size:10px;color:#e2e8f0;">⬇</div>
+          </div>
+
+          <!-- 图谱模拟 -->
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">
+            <!-- 中心节点 -->
+            <div style="position:relative;width:400px;height:300px;">
+              <!-- 中心：数字化转型 -->
+              <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#22c55e;color:white;padding:12px 20px;border-radius:50px;font-size:11px;font-weight:bold;box-shadow:0 0 20px rgba(34,197,94,0.5);">
+                数字化转型
+              </div>
+
+              <!-- 人物节点 -->
+              <div style="position:absolute;top:10%;left:20%;background:#3b82f6;color:white;padding:8px 12px;border-radius:50px;font-size:9px;">
+                张局长
+              </div>
+              <div style="position:absolute;top:5%;left:60%;background:#3b82f6;color:white;padding:8px 12px;border-radius:50px;font-size:9px;">
+                李处长
+              </div>
+
+              <!-- 组织节点 -->
+              <div style="position:absolute;top:30%;left:5%;background:#7c3aed;color:white;padding:8px 12px;border-radius:50px;font-size:9px;">
+                科技局
+              </div>
+              <div style="position:absolute;top:25%;right:5%;background:#7c3aed;color:white;padding:8px 12px;border-radius:50px;font-size:9px;">
+                经信委
+              </div>
+
+              <!-- 事件节点 -->
+              <div style="position:absolute;bottom:25%;left:15%;background:#22c55e;color:white;padding:8px 12px;border-radius:50px;font-size:9px;">
+                推进会议
+              </div>
+              <div style="position:absolute;bottom:20%;right:20%;background:#22c55e;color:white;padding:8px 12px;border-radius:50px;font-size:9px;">
+                政策发布
+              </div>
+
+              <!-- 地点节点 -->
+              <div style="position:absolute;bottom:10%;left:45%;background:#eab308;color:white;padding:8px 12px;border-radius:50px;font-size:9px;">
+                上海市
+              </div>
+
+              <!-- 文档节点 -->
+              <div style="position:absolute;top:60%;left:10%;background:#64748b;color:white;padding:6px 10px;border-radius:50px;font-size:8px;">
+                指导意见.pdf
+              </div>
+              <div style="position:absolute;top:55%;right:8%;background:#64748b;color:white;padding:6px 10px;border-radius:50px;font-size:8px;">
+                行动计划.pdf
+              </div>
+
+              <!-- 连接线（模拟） -->
+              <div style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;">
+                <svg width="100%" height="100%" style="opacity:0.3;">
+                  <line x1="50%" y1="50%" x2="25%" y2="15%" stroke="#3b82f6" stroke-width="1"/>
+                  <line x1="50%" y1="50%" x2="70%" y2="10%" stroke="#3b82f6" stroke-width="1"/>
+                  <line x1="50%" y1="50%" x2="12%" y2="35%" stroke="#7c3aed" stroke-width="1"/>
+                  <line x1="50%" y1="50%" x2="88%" y2="30%" stroke="#7c3aed" stroke-width="1"/>
+                  <line x1="50%" y1="50%" x2="22%" y2="72%" stroke="#22c55e" stroke-width="1"/>
+                  <line x1="50%" y1="50%" x2="75%" y2="75%" stroke="#22c55e" stroke-width="1"/>
+                  <line x1="50%" y1="50%" x2="50%" y2="88%" stroke="#eab308" stroke-width="1"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- 图例 -->
+          <div style="position:absolute;bottom:12px;left:12px;background:#0f172a80;padding:8px;border-radius:8px;border:1px solid #334155;">
+            <div style="font-size:9px;color:#94a3b8;margin-bottom:4px;">图例</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <div style="display:flex;gap:4px;align-items:center;">
+                <div style="width:8px;height:8px;background:#3b82f6;border-radius:50%;"></div>
+                <span style="font-size:8px;color:#e2e8f0;">人物</span>
+              </div>
+              <div style="display:flex;gap:4px;align-items:center;">
+                <div style="width:8px;height:8px;background:#7c3aed;border-radius:50%;"></div>
+                <span style="font-size:8px;color:#e2e8f0;">组织</span>
+              </div>
+              <div style="display:flex;gap:4px;align-items:center;">
+                <div style="width:8px;height:8px;background:#22c55e;border-radius:50%;"></div>
+                <span style="font-size:8px;color:#e2e8f0;">事件</span>
+              </div>
+              <div style="display:flex;gap:4px;align-items:center;">
+                <div style="width:8px;height:8px;background:#eab308;border-radius:50%;"></div>
+                <span style="font-size:8px;color:#e2e8f0;">地点</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧：实体详情面板 -->
+        <div style="width:280px;background:#1e293b;border-radius:12px;padding:12px;border:1px solid #334155;display:flex;flex-direction:column;">
+          <div style="font-size:11px;font-weight:bold;color:#a5b4fc;margin-bottom:12px;">📋 实体详情</div>
+
+          <!-- 选中实体信息 -->
+          <div style="background:#334155;padding:12px;border-radius:8px;margin-bottom:12px;">
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+              <div style="background:#22c55e;padding:10px;border-radius:8px;font-size:14px;">📅</div>
+              <div>
+                <div style="font-size:11px;font-weight:bold;color:#e2e8f0;">数字化转型</div>
+                <div style="font-size:9px;color:#22c55e;">事件实体</div>
+              </div>
+            </div>
+            <div style="font-size:9px;color:#94a3b8;line-height:1.6;">
+              全市推进数字化转型工作的核心事件，涉及多个部门和政策措施...
+            </div>
+          </div>
+
+          <!-- 关系统计 -->
+          <div style="margin-bottom:12px;">
+            <div style="font-size:10px;font-weight:bold;color:#94a3b8;margin-bottom:8px;">关系统计</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+              <div style="background:#334155;padding:8px;border-radius:6px;text-align:center;">
+                <div style="font-size:14px;font-weight:bold;color:#3b82f6;">5</div>
+                <div style="font-size:9px;color:#94a3b8;">关联人物</div>
+              </div>
+              <div style="background:#334155;padding:8px;border-radius:6px;text-align:center;">
+                <div style="font-size:14px;font-weight:bold;color:#7c3aed;">3</div>
+                <div style="font-size:9px;color:#94a3b8;">关联组织</div>
+              </div>
+              <div style="background:#334155;padding:8px;border-radius:6px;text-align:center;">
+                <div style="font-size:14px;font-weight:bold;color:#22c55e;">8</div>
+                <div style="font-size:9px;color:#94a3b8;">关联事件</div>
+              </div>
+              <div style="background:#334155;padding:8px;border-radius:6px;text-align:center;">
+                <div style="font-size:14px;font-weight:bold;color:#64748b;">12</div>
+                <div style="font-size:9px;color:#94a3b8;">关联文档</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 关联实体列表 -->
+          <div style="flex:1;overflow-y:auto;">
+            <div style="font-size:10px;font-weight:bold;color:#94a3b8;margin-bottom:8px;">关联实体</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="background:#334155;padding:8px;border-radius:6px;display:flex;gap:8px;align-items:center;">
+                <div style="background:#3b82f6;padding:4px;border-radius:4px;font-size:10px;">👤</div>
+                <div style="flex:1;">
+                  <div style="font-size:10px;color:#e2e8f0;">张局长</div>
+                  <div style="font-size:8px;color:#64748b;">负责人 · 隶属</div>
+                </div>
+                <div style="background:#475569;padding:2px 6px;border-radius:4px;font-size:8px;color:#94a3b8;">查看</div>
+              </div>
+              <div style="background:#334155;padding:8px;border-radius:6px;display:flex;gap:8px;align-items:center;">
+                <div style="background:#7c3aed;padding:4px;border-radius:4px;font-size:10px;">🏛️</div>
+                <div style="flex:1;">
+                  <div style="font-size:10px;color:#e2e8f0;">科技局</div>
+                  <div style="font-size:8px;color:#64748b;">主办单位 · 隶属</div>
+                </div>
+                <div style="background:#475569;padding:2px 6px;border-radius:4px;font-size:8px;color:#94a3b8;">查看</div>
+              </div>
+              <div style="background:#334155;padding:8px;border-radius:6px;display:flex;gap:8px;align-items:center;">
+                <div style="background:#22c55e;padding:4px;border-radius:4px;font-size:10px;">📅</div>
+                <div style="flex:1;">
+                  <div style="font-size:10px;color:#e2e8f0;">推进会议</div>
+                  <div style="font-size:8px;color:#64748b;">子事件 · 时间关联</div>
+                </div>
+                <div style="background:#475569;padding:2px 6px;border-radius:4px;font-size:8px;color:#94a3b8;">查看</div>
+              </div>
+              <div style="background:#334155;padding:8px;border-radius:6px;display:flex;gap:8px;align-items:center;">
+                <div style="background:#64748b;padding:4px;border-radius:4px;font-size:10px;">📋</div>
+                <div style="flex:1;">
+                  <div style="font-size:10px;color:#e2e8f0;">指导意见.pdf</div>
+                  <div style="font-size:8px;color:#64748b;">政策文件 · 引用</div>
+                </div>
+                <div style="background:#475569;padding:2px 6px;border-radius:4px;font-size:8px;color:#94a3b8;">查看</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 操作按钮 -->
+          <div style="display:flex;gap:6px;margin-top:12px;">
+            <div style="background:#22c55e;color:white;padding:8px;border-radius:6px;font-size:10px;flex:1;text-align:center;">展开关系</div>
+            <div style="background:#334155;padding:8px;border-radius:6px;font-size:10px;color:#e2e8f0;flex:1;text-align:center;">导出子图</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">功能清单</div>
+  <div style="background:white;border-radius:8px;padding:12px;border:1px solid #22c55e;font-size:11px;">
+    <div style="font-weight:bold;color:#15803d;margin-bottom:6px;">🆕 新增页面核心功能</div>
+    <ul style="font-size:10px;color:#16a34a;margin-left:12px;display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+      <li>实体类型筛选（人物/组织/事件/地点/文档）</li>
+      <li>关系类型筛选（隶属/协作/引用/时间）</li>
+      <li>节点大小设置（按重要性/统一）</li>
+      <li>布局方式切换（力导向/环形）</li>
+      <li>实体搜索功能</li>
+      <li>图谱缩放/重置/导出</li>
+      <li>节点拖拽交互</li>
+      <li>点击展开关系</li>
+      <li>实体详情面板</li>
+      <li>关系统计展示</li>
+      <li>关联实体列表</li>
+      <li>子图导出功能</li>
+      <li>图例说明</li>
+      <li>深色主题（适合图谱展示）</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section">
+  <div class="options">
+    <div class="option" data-choice="approve" onclick="toggleSelect(this)">
+      <div class="letter">✓</div>
+      <div class="content">
+        <h3>确认此设计</h3>
+        <p>继续最后一个页面</p>
+      </div>
+    </div>
+    <div class="option" data-choice="modify" onclick="toggleSelect(this)">
+      <div class="letter">✎</div>
+      <div class="content">
+        <h3>需要调整</h3>
+        <p>请在终端说明修改需求</p>
+      </div>
+    </div>
+  </div>
+</div>

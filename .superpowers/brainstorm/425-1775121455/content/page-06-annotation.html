@@ -1,0 +1,304 @@
+<h2>页面设计 06：语料标注工作台【新增】</h2>
+<p class="subtitle">智能规则预处理 + 人工审核，标注进度、质量统计、版本追溯</p>
+
+<div class="section">
+  <div class="mockup">
+    <div class="mockup-header">语料标注工作台 - 完整布局</div>
+    <div class="mockup-body" style="background:#f0fdf4;padding:16px;font-size:11px;">
+
+      <div style="display:flex;gap:12px;">
+        <!-- 左侧：标注任务队列 -->
+        <div style="width:280px;background:white;border-radius:12px;padding:12px;border:2px solid #22c55e;display:flex;flex-direction:column;">
+          <div style="font-size:11px;font-weight:bold;color:#15803d;margin-bottom:12px;">📋 标注任务队列</div>
+
+          <!-- 状态统计 -->
+          <div style="display:flex;gap:4px;margin-bottom:12px;">
+            <div style="background:#e0f2fe;padding:8px;border-radius:8px;flex:1;text-align:center;border:1px solid #0ea5e9;">
+              <div style="font-size:9px;color:#0369a1;">待审核</div>
+              <div style="font-size:14px;font-weight:bold;color:#0284c7;">45</div>
+            </div>
+            <div style="background:#dcfce7;padding:8px;border-radius:8px;flex:1;text-align:center;border:1px solid #22c55e;">
+              <div style="font-size:9px;color:#15803d;">已通过</div>
+              <div style="font-size:14px;font-weight:bold;color:#16a34a;">128</div>
+            </div>
+            <div style="background:#fef2f2;padding:8px;border-radius:8px;flex:1;text-align:center;border:1px solid #ef4444;">
+              <div style="font-size:9px;color:#dc2626;">已驳回</div>
+              <div style="font-size:14px;font-weight:bold;color:#b91c1c;">12</div>
+            </div>
+          </div>
+
+          <!-- 任务列表 -->
+          <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px;">
+            <!-- 任务项：当前选中 -->
+            <div style="background:#22c55e;color:white;padding:10px;border-radius:10px;border:2px solid #15803d;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                <div style="font-size:10px;font-weight:bold;">数字化转型指南.pdf</div>
+                <div style="background:#15803d;padding:2px 6px;border-radius:4px;font-size:8px;">当前</div>
+              </div>
+              <div style="font-size:9px;opacity:0.9;">智能预标注: 12项</div>
+              <div style="display:flex;gap:4px;margin-top:6px;">
+                <div style="background:#dcfce7;padding:2px 4px;border-radius:3px;font-size:8px;color:#15803d;">自动分类: ✓</div>
+                <div style="background:#dcfce7;padding:2px 4px;border-radius:3px;font-size:8px;color:#15803d;">标签: 8个</div>
+              </div>
+            </div>
+
+            <!-- 任务项：待审核 -->
+            <div style="background:#f0fdf4;padding:10px;border-radius:8px;border:1px solid #22c55e;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                <div style="font-size:10px;font-weight:bold;color:#15803d;">网络安全制度.docx</div>
+                <div style="background:#eab308;padding:2px 6px;border-radius:4px;font-size:8px;color:white;">待审核</div>
+              </div>
+              <div style="font-size:9px;color:#16a34a;">智能预标注: 8项</div>
+            </div>
+
+            <!-- 任务项：待审核 -->
+            <div style="background:#f0fdf4;padding:10px;border-radius:8px;border:1px solid #22c55e;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                <div style="font-size:10px;font-weight:bold;color:#15803d;">人工智能规划.pdf</div>
+                <div style="background:#eab308;padding:2px 6px;border-radius:4px;font-size:8px;color:white;">待审核</div>
+              </div>
+              <div style="font-size:9px;color:#16a34a;">智能预标注: 15项</div>
+            </div>
+
+            <!-- 任务项：已通过 -->
+            <div style="background:#dcfce7;padding:10px;border-radius:8px;opacity:0.7;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                <div style="font-size:10px;color:#15803d;">数据治理方案.pdf</div>
+                <div style="background:#22c55e;color:white;padding:2px 6px;border-radius:4px;font-size:8px;">✓ 通过</div>
+              </div>
+              <div style="font-size:9px;color:#16a34a;">审核人: 张三 | 2024-03-24</div>
+            </div>
+          </div>
+
+          <!-- 快捷操作 -->
+          <div style="margin-top:12px;display:flex;gap:6px;">
+            <div style="background:#22c55e;color:white;padding:8px;border-radius:6px;font-size:9px;flex:1;text-align:center;">批量通过</div>
+            <div style="background:#f0fdf4;border:1px solid #22c55e;padding:8px;border-radius:6px;font-size:9px;color:#15803d;flex:1;text-align:center;">导出报告</div>
+          </div>
+        </div>
+
+        <!-- 中间：标注编辑区 -->
+        <div style="flex:1;background:white;border-radius:12px;padding:16px;border:2px solid #22c55e;display:flex;flex-direction:column;">
+          <!-- 文档标题和工具栏 -->
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #e2e8f0;">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div style="background:#fef2f2;padding:4px;border-radius:4px;font-size:9px;color:#dc2626;">PDF</div>
+              <div style="font-size:12px;font-weight:bold;color:#15803d;">数字化转型指南.pdf</div>
+              <div style="background:#e0f2fe;padding:4px 8px;border-radius:4px;font-size:9px;color:#0369a1;">第12页 / 共45页</div>
+            </div>
+            <div style="display:flex;gap:4px;">
+              <div style="background:#f0fdf4;border:1px solid #22c55e;padding:6px;border-radius:6px;font-size:9px;color:#15803d;">上一份</div>
+              <div style="background:#f0fdf4;border:1px solid #22c55e;padding:6px;border-radius:6px;font-size:9px;color:#15803d;">下一份</div>
+            </div>
+          </div>
+
+          <!-- 文档内容预览 -->
+          <div style="flex:1;background:#f8fafc;border-radius:8px;padding:16px;border:1px solid #e2e8f0;margin-bottom:12px;overflow-y:auto;">
+            <div style="font-size:11px;color:#334155;line-height:1.8;">
+              <div style="margin-bottom:12px;">
+                <span style="background:#fef3c7;padding:2px 4px;border-radius:2px;border:1px dashed #eab308;" title="点击编辑标注">数字化转型</span>是当前经济社会发展的核心驱动力。为贯彻落实国家关于<span style="background:#fef3c7;padding:2px 4px;border-radius:2px;border:1px dashed #eab308;">数字化建设</span>的战略部署...
+              </div>
+              <div style="margin-bottom:12px;">
+                一、总体目标
+              </div>
+              <div style="margin-bottom:12px;">
+                到2025年，全市<span style="background:#dcfce7;padding:2px 4px;border-radius:2px;border:1px solid #22c55e;" title="已确认标注">数字化转型</span>取得显著成效，数字产业规模达到<span style="background:#dcfce7;padding:2px 4px;border-radius:2px;border:1px solid #22c55e;">5000亿元</span>...
+              </div>
+              <div style="margin-bottom:12px;">
+                二、主要任务
+              </div>
+              <div style="margin-bottom:12px;">
+                （一）推进<span style="background:#bbf7d0;padding:2px 4px;border-radius:2px;border:2px solid #22c55e;" title="人工添加标注">数字基础设施</span>建设。加快5G网络全覆盖...
+              </div>
+              <div style="font-size:9px;color:#94a3b8;text-align:center;margin-top:16px;">
+                --- 文档内容继续 ---
+              </div>
+            </div>
+          </div>
+
+          <!-- 标注工具栏 -->
+          <div style="background:#f0fdf4;border-radius:8px;padding:10px;border:1px solid #22c55e;">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <div style="font-size:10px;font-weight:bold;color:#15803d;">标注工具:</div>
+              <div style="background:#22c55e;color:white;padding:6px 10px;border-radius:6px;font-size:9px;">🏷 添加标签</div>
+              <div style="background:white;border:1px solid #22c55e;padding:6px 10px;border-radius:6px;font-size:9px;color:#15803d;">✏ 编辑实体</div>
+              <div style="background:white;border:1px solid #22c55e;padding:6px 10px;border-radius:6px;font-size:9px;color:#15803d;">🔗 关联文档</div>
+              <div style="background:white;border:1px solid #22c55e;padding:6px 10px;border-radius:6px;font-size:9px;color:#15803d;">📍 定位段落</div>
+              <div style="background:white;border:1px solid #22c55e;padding:6px 10px;border-radius:6px;font-size:9px;color:#15803d;">❌ 删除标注</div>
+              <div style="background:white;border:1px solid #22c55e;padding:6px 10px;border-radius:6px;font-size:9px;color:#15803d;">↻ 撤销</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧：标注结果面板 -->
+        <div style="width:300px;background:white;border-radius:12px;padding:12px;border:2px solid #22c55e;display:flex;flex-direction:column;">
+          <!-- 分类标注 -->
+          <div style="margin-bottom:12px;">
+            <div style="font-size:10px;font-weight:bold;color:#15803d;margin-bottom:8px;">📁 分类标注</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="display:flex;justify-content:space-between;background:#dcfce7;padding:8px;border-radius:8px;border:1px solid #22c55e;">
+                <div style="display:flex;gap:4px;align-items:center;">
+                  <div style="font-size:10px;color:#15803d;">政策文件</div>
+                  <div style="background:#22c55e;color:white;padding:2px 4px;border-radius:3px;font-size:8px;">✓ 已确认</div>
+                </div>
+                <div style="background:#f0fdf4;padding:2px 4px;border-radius:3px;font-size:8px;color:#15803d;">✏</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;background:#f0fdf4;padding:8px;border-radius:8px;border:1px dashed #22c55e;">
+                <div style="display:flex;gap:4px;align-items:center;">
+                  <div style="font-size:10px;color:#15803d;">指导性文件</div>
+                  <div style="background:#eab308;color:white;padding:2px 4px;border-radius:3px;font-size:8px;">待确认</div>
+                </div>
+                <div style="display:flex;gap:2px;">
+                  <div style="background:#22c55e;color:white;padding:2px 4px;border-radius:3px;font-size:8px;">✓</div>
+                  <div style="background:#ef4444;color:white;padding:2px 4px;border-radius:3px;font-size:8px;">✗</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 实体标注 -->
+          <div style="margin-bottom:12px;">
+            <div style="font-size:10px;font-weight:bold;color:#15803d;margin-bottom:8px;">🏷 实体标注</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="background:#e0f2fe;padding:8px;border-radius:8px;border:1px solid #0ea5e9;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                  <div style="font-size:9px;color:#0369a1;font-weight:bold;">上海市</div>
+                  <div style="background:#0ea5e9;color:white;padding:2px 4px;border-radius:3px;font-size:8px;">地区</div>
+                </div>
+                <div style="font-size:8px;color:#0284c7;">出现次数: 12 | 第1,5,8...页</div>
+              </div>
+              <div style="background:#fefce8;padding:8px;border-radius:8px;border:1px solid #eab308;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                  <div style="font-size:9px;color:#a16207;font-weight:bold;">数字化转型</div>
+                  <div style="background:#eab308;color:white;padding:2px 4px;border-radius:3px;font-size:8px;">主题</div>
+                </div>
+                <div style="font-size:8px;color:#854d0e;">出现次数: 45 | 核心关键词</div>
+              </div>
+              <div style="background:#fef2f2;padding:8px;border-radius:8px;border:1px dashed #ef4444;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                  <div style="font-size:9px;color:#dc2626;font-weight:bold;">5000亿元</div>
+                  <div style="background:#ef4444;color:white;padding:2px 4px;border-radius:3px;font-size:8px;">数值</div>
+                </div>
+                <div style="font-size:8px;color:#b91c1c;">待确认 | 上下文: 产业规模目标</div>
+                <div style="display:flex;gap:2px;margin-top:4px;">
+                  <div style="background:#22c55e;color:white;padding:3px 6px;border-radius:3px;font-size:8px;">✓ 确认</div>
+                  <div style="background:#ef4444;color:white;padding:3px 6px;border-radius:3px;font-size:8px;">✗ 删除</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 关键词标签 -->
+          <div style="margin-bottom:12px;">
+            <div style="font-size:10px;font-weight:bold;color:#15803d;margin-bottom:8px;">🏷 关键词标签</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;">
+              <div style="background:#22c55e;color:white;padding:4px 8px;border-radius:6px;font-size:9px;">数字化 ✓</div>
+              <div style="background:#22c55e;color:white;padding:4px 8px;border-radius:6px;font-size:9px;">转型 ✓</div>
+              <div style="background:#22c55e;color:white;padding:4px 8px;border-radius:6px;font-size:9px;">2025 ✓</div>
+              <div style="background:#fef3c7;border:1px solid #eab308;padding:4px 8px;border-radius:6px;font-size:9px;color:#854d0e;">基础设施 ?</div>
+              <div style="background:#fef3c7;border:1px solid #eab308;padding:4px 8px;border-radius:6px;font-size:9px;color:#854d0e;">5G网络 ?</div>
+              <div style="background:#f0fdf4;border:1px dashed #22c55e;padding:4px 8px;border-radius:6px;font-size:9px;color:#15803d;">+ 添加</div>
+            </div>
+          </div>
+
+          <!-- 审核操作 -->
+          <div style="background:#f0fdf4;padding:12px;border-radius:8px;border:1px solid #22c55e;margin-top:auto;">
+            <div style="font-size:10px;font-weight:bold;color:#15803d;margin-bottom:8px;">审核操作</div>
+            <div style="font-size:9px;color:#16a34a;margin-bottom:6px;">标注完成度: <span style="font-weight:bold;color:#22c55e;">85%</span></div>
+            <div style="display:flex;gap:6px;margin-bottom:6px;">
+              <div style="background:#22c55e;color:white;padding:8px;border-radius:6px;font-size:9px;font-weight:bold;flex:1;text-align:center;">✓ 通过</div>
+              <div style="background:#fef2f2;border:1px solid #ef4444;padding:8px;border-radius:6px;font-size:9px;color:#dc2626;flex:1;text-align:center;">✗ 驳回</div>
+            </div>
+            <div style="background:#f0fdf4;border:1px solid #22c55e;padding:6px;border-radius:6px;font-size:9px;color:#15803d;">📝 备注: 可填写驳回原因...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">智能预标注规则配置（弹出面板）</div>
+  <div style="background:white;border-radius:8px;padding:12px;border:1px solid #22c55e;font-size:11px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div style="background:#f0fdf4;padding:10px;border-radius:8px;border:1px solid #22c55e;">
+        <div style="font-size:10px;font-weight:bold;color:#15803d;margin-bottom:6px;">自动分类规则</div>
+        <div style="font-size:9px;color:#16a34a;line-height:1.6;">
+          • 标题关键词匹配 (政策|通知|规定)<br>
+          • 文号格式识别 ([2024]第XX号)<br>
+          • 发文单位识别 (XX局|XX委员会)<br>
+          • 内容结构分析 (章节|条款)
+        </div>
+      </div>
+      <div style="background:#f0fdf4;padding:10px;border-radius:8px;border:1px solid #22c55e;">
+        <div style="font-size:10px;font-weight:bold;color:#15803d;margin-bottom:6px;">实体抽取规则</div>
+        <div style="font-size:9px;color:#16a34a;line-height:1.6;">
+          • 地区实体 (省|市|区|县)<br>
+          • 时间实体 (日期|年限|季度)<br>
+          • 数值实体 (金额|比例|指标)<br>
+          • 组织实体 (单位|部门|机构)
+        </div>
+      </div>
+      <div style="background:#f0fdf4;padding:10px;border-radius:8px;border:1px solid #22c55e;">
+        <div style="font-size:10px;font-weight:bold;color:#15803d;margin-bottom:6px;">关键词抽取</div>
+        <div style="font-size:9px;color:#16a34a;line-height:1.6;">
+          • TF-IDF 算法<br>
+          • TextRank 算法<br>
+          • 预定义关键词库匹配<br>
+          • 上下文语义增强
+        </div>
+      </div>
+      <div style="background:#f0fdf4;padding:10px;border-radius:8px;border:1px solid #22c55e;">
+        <div style="font-size:10px;font-weight:bold;color:#15803d;margin-bottom:6px;">质量评估指标</div>
+        <div style="font-size:9px;color:#16a34a;line-height:1.6;">
+          • 标注覆盖率 ≥ 80%<br>
+          • 实体准确率 ≥ 95%<br>
+          • 分类一致性 ≥ 90%<br>
+          • 关键词相关性 ≥ 85%
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">功能清单</div>
+  <div style="background:white;border-radius:8px;padding:12px;border:1px solid #22c55e;font-size:11px;">
+    <div style="font-weight:bold;color:#15803d;margin-bottom:6px;">🆕 新增页面核心功能</div>
+    <ul style="font-size:10px;color:#16a34a;margin-left:12px;display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+      <li>标注任务队列（状态分类）</li>
+      <li>智能预标注结果展示</li>
+      <li>文档内容预览+标注高亮</li>
+      <li>标注工具栏（添加/编辑/删除）</li>
+      <li>分类标注确认/修正</li>
+      <li>实体标注管理（地区/时间/数值/组织）</li>
+      <li>关键词标签管理</li>
+      <li>标注完成度统计</li>
+      <li>审核操作（通过/驳回+备注）</li>
+      <li>批量审核功能</li>
+      <li>标注历史追溯</li>
+      <li>质量统计报表导出</li>
+      <li>预标注规则配置</li>
+      <li>上下文定位跳转</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section">
+  <div class="options">
+    <div class="option" data-choice="approve" onclick="toggleSelect(this)">
+      <div class="letter">✓</div>
+      <div class="content">
+        <h3>确认此设计</h3>
+        <p>继续下一页面</p>
+      </div>
+    </div>
+    <div class="option" data-choice="modify" onclick="toggleSelect(this)">
+      <div class="letter">✎</div>
+      <div class="content">
+        <h3>需要调整</h3>
+        <p>请在终端说明修改需求</p>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,278 @@
+<h2>页面设计 04：知识库管理</h2>
+<p class="subtitle">文件列表+元数据面板，增强：解析状态、版本管理、批量操作</p>
+
+<div class="section">
+  <div class="mockup">
+    <div class="mockup-header">知识库管理 - 完整布局</div>
+    <div class="mockup-body" style="background:#f0fdf4;padding:16px;font-size:11px;">
+
+      <div style="display:flex;flex-direction:column;">
+        <!-- 顶部工具栏 -->
+        <div style="background:white;border-radius:12px;padding:12px;border:2px solid #22c55e;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:6px;padding:6px;font-size:10px;color:#15803d;">← 返回</div>
+            <div style="font-weight:bold;color:#15803d;font-size:12px;">知识库管理中心</div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <!-- 视图切换 -->
+            <div style="display:flex;background:#f0fdf4;padding:4px;border-radius:8px;">
+              <div style="background:#22c55e;color:white;padding:6px 10px;border-radius:6px;font-size:9px;">文件库</div>
+              <div style="background:white;padding:6px 10px;border-radius:6px;font-size:9px;color:#15803d;">解析流水线</div>
+            </div>
+            <div style="background:#22c55e;color:white;padding:8px 14px;border-radius:8px;font-size:10px;font-weight:bold;">⬆ 上传文件</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;">
+          <!-- 左侧：知识库分层导航 -->
+          <div style="width:220px;background:white;border-radius:12px;padding:12px;border:2px solid #22c55e;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <div style="font-size:10px;font-weight:bold;color:#15803d;">📚 知识分层</div>
+              <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:4px;padding:4px;font-size:9px;color:#15803d;">+ 新建</div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <!-- 层级1 -->
+              <div style="background:#22c55e;color:white;padding:8px;border-radius:8px;font-size:10px;display:flex;justify-content:space-between;align-items:center;">
+                <span>📁 政策文件库</span>
+                <span style="font-size:9px;">▼</span>
+              </div>
+              <!-- 子层级 -->
+              <div style="margin-left:12px;display:flex;flex-direction:column;gap:4px;">
+                <div style="background:#dcfce7;padding:6px;border-radius:6px;font-size:9px;color:#15803d;border-left:2px solid #22c55e;">
+                  📄 国家标准规范 <span style="background:#22c55e;color:white;padding:2px 4px;border-radius:3px;font-size:8px;">12</span>
+                </div>
+                <div style="background:#f0fdf4;padding:6px;border-radius:6px;font-size:9px;color:#15803d;">
+                  📄 上海地方法规 <span style="background:#f0fdf4;border:1px solid #22c55e;padding:2px 4px;border-radius:3px;font-size:8px;">8</span>
+                </div>
+                <div style="background:#f0fdf4;padding:6px;border-radius:6px;font-size:9px;color:#15803d;">
+                  📄 行业准入指南 <span style="background:#f0fdf4;border:1px solid #22c55e;padding:2px 4px;border-radius:3px;font-size:8px;">5</span>
+                </div>
+              </div>
+
+              <!-- 层级2 -->
+              <div style="background:#f0fdf4;border:1px solid #22c55e;padding:8px;border-radius:8px;font-size:10px;color:#15803d;display:flex;justify-content:space-between;align-items:center;">
+                <span>📁 内部规章制度</span>
+                <span style="font-size:9px;">▶</span>
+              </div>
+
+              <!-- 层级3 -->
+              <div style="background:#f0fdf4;border:1px solid #22c55e;padding:8px;border-radius:8px;font-size:10px;color:#15803d;display:flex;justify-content:space-between;align-items:center;">
+                <span>📁 业务知识文档</span>
+                <span style="font-size:9px;">▶</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 中间：文件列表 -->
+          <div style="flex:1;background:white;border-radius:12px;border:2px solid #22c55e;overflow:hidden;">
+            <!-- 操作栏 -->
+            <div style="background:#f0fdf4;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+              <div style="display:flex;gap:6px;align-items:center;font-size:10px;color:#15803d;">
+                <span>当前目录：<span style="font-weight:bold;">政策文件库 / 国家标准规范</span></span>
+                <span style="background:#22c55e;color:white;padding:2px 6px;border-radius:4px;font-size:9px;">12个文件</span>
+              </div>
+              <div style="display:flex;gap:4px;">
+                <div style="background:white;border:1px solid #22c55e;border-radius:4px;padding:4px;font-size:9px;color:#15803d;">🔍 搜索</div>
+                <div style="background:white;border:1px solid #22c55e;border-radius:4px;padding:4px;font-size:9px;color:#15803d;">⚙ 筛选</div>
+                <div style="background:white;border:1px solid #22c55e;border-radius:4px;padding:4px;font-size:9px;color:#15803d;">↻ 刷新</div>
+              </div>
+            </div>
+
+            <!-- 批量操作栏 -->
+            <div style="background:#fefce8;padding:8px;border-bottom:1px solid #eab308;display:flex;gap:8px;align-items:center;">
+              <div style="font-size:10px;color:#a16207;">已选择 <span style="font-weight:bold;">3</span> 个文件</div>
+              <div style="background:#eab308;color:white;padding:4px 8px;border-radius:4px;font-size:9px;">批量解析</div>
+              <div style="background:#fef3c7;border:1px solid #eab308;padding:4px 8px;border-radius:4px;font-size:9px;color:#854d0e;">批量标注</div>
+              <div style="background:#fef3c7;border:1px solid #eab308;padding:4px 8px;border-radius:4px;font-size:9px;color:#854d0e;">批量移动</div>
+              <div style="background:#fef2f2;border:1px solid #ef4444;padding:4px 8px;border-radius:4px;font-size:9px;color:#dc2626;">批量删除</div>
+            </div>
+
+            <!-- 文件列表表格 -->
+            <div style="font-size:10px;">
+              <!-- 表头 -->
+              <div style="background:#f0fdf4;padding:8px;display:grid;grid-template-columns:40px 1fr 80px 60px 80px 80px;border-bottom:1px solid #22c55e;color:#15803d;font-weight:bold;">
+                <div style="text-align:center;"><input type="checkbox" style="width:12px;height:12px;"></div>
+                <div>文件名</div>
+                <div>解析状态</div>
+                <div>版本</div>
+                <div>更新时间</div>
+                <div style="text-align:center;">操作</div>
+              </div>
+
+              <!-- 文件行1 -->
+              <div style="padding:10px;display:grid;grid-template-columns:40px 1fr 80px 60px 80px 80px;border-bottom:1px solid #e2e8f0;align-items:center;">
+                <div style="text-align:center;"><input type="checkbox" checked style="width:12px;height:12px;"></div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <div style="background:#fef2f2;padding:4px;border-radius:4px;font-size:9px;color:#dc2626;">PDF</div>
+                  <span style="color:#15803d;">2024国家信息化数字化建设指南.pdf</span>
+                </div>
+                <div style="background:#dcfce7;color:#15803d;padding:4px;border-radius:4px;font-size:9px;text-align:center;">✓ 已解析</div>
+                <div style="text-align:center;font-size:9px;color:#16a34a;">v2.1</div>
+                <div style="font-size:9px;color:#16a34a;">2024-03-24</div>
+                <div style="display:flex;justify-content:center;gap:4px;">
+                  <div style="background:#f0fdf4;border:1px solid #22c55e;padding:3px;border-radius:3px;font-size:8px;color:#15803d;">👁</div>
+                  <div style="background:#f0fdf4;border:1px solid #22c55e;padding:3px;border-radius:3px;font-size:8px;color:#15803d;">✏</div>
+                  <div style="background:#fef2f2;border:1px solid #ef4444;padding:3px;border-radius:3px;font-size:8px;color:#dc2626;">🗑</div>
+                </div>
+              </div>
+
+              <!-- 文件行2 - 解析中状态 -->
+              <div style="padding:10px;display:grid;grid-template-columns:40px 1fr 80px 60px 80px 80px;border-bottom:1px solid #e2e8f0;align-items:center;background:#fefce8;">
+                <div style="text-align:center;"><input type="checkbox" checked style="width:12px;height:12px;"></div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <div style="background:#dbeafe;padding:4px;border-radius:4px;font-size:9px;color:#1d4ed8;">DOC</div>
+                  <span style="color:#15803d;">关于深化科技体制改革的若干意见.docx</span>
+                </div>
+                <div style="background:#fef3c7;color:#854d0e;padding:4px;border-radius:4px;font-size:9px;text-align:center;">⏳ 解析中 67%</div>
+                <div style="text-align:center;font-size:9px;color:#16a34a;">v1.0</div>
+                <div style="font-size:9px;color:#16a34a;">2024-03-25</div>
+                <div style="display:flex;justify-content:center;gap:4px;">
+                  <div style="background:#f0fdf4;border:1px solid #22c55e;padding:3px;border-radius:3px;font-size:8px;color:#15803d;">👁</div>
+                  <div style="background:#f0fdf4;border:1px solid #22c55e;padding:3px;border-radius:3px;font-size:8px;color:#15803d;">⏹</div>
+                </div>
+              </div>
+
+              <!-- 文件行3 -->
+              <div style="padding:10px;display:grid;grid-template-columns:40px 1fr 80px 60px 80px 80px;border-bottom:1px solid #e2e8f0;align-items:center;">
+                <div style="text-align:center;"><input type="checkbox" checked style="width:12px;height:12px;"></div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <div style="background:#fef2f2;padding:4px;border-radius:4px;font-size:9px;color:#dc2626;">PDF</div>
+                  <span style="color:#15803d;">人工智能伦理治理报告2023.pdf</span>
+                </div>
+                <div style="background:#dcfce7;color:#15803d;padding:4px;border-radius:4px;font-size:9px;text-align:center;">✓ 已解析</div>
+                <div style="text-align:center;font-size:9px;color:#16a34a;">v1.0</div>
+                <div style="font-size:9px;color:#16a34a;">2024-03-20</div>
+                <div style="display:flex;justify-content:center;gap:4px;">
+                  <div style="background:#f0fdf4;border:1px solid #22c55e;padding:3px;border-radius:3px;font-size:8px;color:#15803d;">👁</div>
+                  <div style="background:#f0fdf4;border:1px solid #22c55e;padding:3px;border-radius:3px;font-size:8px;color:#15803d;">✏</div>
+                  <div style="background:#fef2f2;border:1px solid #ef4444;padding:3px;border-radius:3px;font-size:8px;color:#dc2626;">🗑</div>
+                </div>
+              </div>
+
+              <!-- 文件行4 - 待解析 -->
+              <div style="padding:10px;display:grid;grid-template-columns:40px 1fr 80px 60px 80px 80px;align-items:center;">
+                <div style="text-align:center;"><input type="checkbox" style="width:12px;height:12px;"></div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <div style="background:#fef2f2;padding:4px;border-radius:4px;font-size:9px;color:#dc2626;">PDF</div>
+                  <span style="color:#15803d;">网络安全应急响应预案.pdf</span>
+                </div>
+                <div style="background:#f0fdf4;border:1px solid #22c55e;color:#15803d;padding:4px;border-radius:4px;font-size:9px;text-align:center;">○ 待解析</div>
+                <div style="text-align:center;font-size:9px;color:#94a3b8;">-</div>
+                <div style="font-size:9px;color:#16a34a;">2024-03-26</div>
+                <div style="display:flex;justify-content:center;gap:4px;">
+                  <div style="background:#22c55e;color:white;padding:3px;border-radius:3px;font-size:8px;">▶ 解析</div>
+                  <div style="background:#f0fdf4;border:1px solid #22c55e;padding:3px;border-radius:3px;font-size:8px;color:#15803d;">👁</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 右侧：元数据面板 -->
+          <div style="width:240px;background:white;border-radius:12px;padding:12px;border:2px solid #22c55e;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <div style="font-size:10px;font-weight:bold;color:#15803d;">✨ 元数据配置</div>
+              <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:4px;padding:4px;font-size:9px;color:#15803d;">✕</div>
+            </div>
+
+            <!-- 选中文件 -->
+            <div style="background:#f0fdf4;padding:8px;border-radius:8px;margin-bottom:12px;">
+              <div style="font-size:9px;color:#15803d;font-weight:bold;margin-bottom:4px;">选中文件</div>
+              <div style="display:flex;gap:6px;align-items:center;background:white;padding:6px;border-radius:6px;">
+                <div style="background:#fef2f2;padding:4px;border-radius:4px;font-size:9px;color:#dc2626;">PDF</div>
+                <div style="font-size:9px;color:#15803d;overflow:hidden;text-overflow:ellipsis;">2024国家信息化建设...</div>
+              </div>
+            </div>
+
+            <!-- 属性分类 -->
+            <div style="margin-bottom:12px;">
+              <div style="font-size:9px;color:#15803d;font-weight:bold;margin-bottom:6px;">属性分类</div>
+              <div style="display:grid;grid-template-columns:2fr 2fr;gap:4px;">
+                <div style="background:#22c55e;color:white;padding:6px;border-radius:6px;font-size:9px;text-align:center;">指南</div>
+                <div style="background:#f0fdf4;border:1px solid #22c55e;padding:6px;border-radius:6px;font-size:9px;color:#15803d;text-align:center;">法规</div>
+                <div style="background:#f0fdf4;border:1px solid #22c55e;padding:6px;border-radius:6px;font-size:9px;color:#15803d;text-align:center;">公文</div>
+                <div style="background:#f0fdf4;border:1px solid #22c55e;padding:6px;border-radius:6px;font-size:9px;color:#15803d;text-align:center;">通知</div>
+              </div>
+            </div>
+
+            <!-- 标签 -->
+            <div style="margin-bottom:12px;">
+              <div style="font-size:9px;color:#15803d;font-weight:bold;margin-bottom:6px;">核心标签</div>
+              <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                <div style="background:#dcfce7;border:1px solid #22c55e;padding:4px 6px;border-radius:4px;font-size:8px;color:#15803d;">数字化 ✕</div>
+                <div style="background:#dcfce7;border:1px solid #22c55e;padding:4px 6px;border-radius:4px;font-size:8px;color:#15803d;">2024 ✕</div>
+                <div style="background:#dcfce7;border:1px solid #22c55e;padding:4px 6px;border-radius:4px;font-size:8px;color:#15803d;">改革 ✕</div>
+                <div style="background:#f0fdf4;border:1px dashed #22c55e;padding:4px 6px;border-radius:4px;font-size:8px;color:#15803d;">+ 新增</div>
+              </div>
+            </div>
+
+            <!-- 版本信息 -->
+            <div style="background:#e0f2fe;padding:8px;border-radius:8px;margin-bottom:12px;border:1px solid #0ea5e9;">
+              <div style="font-size:9px;color:#0369a1;font-weight:bold;margin-bottom:4px;">版本历史</div>
+              <div style="font-size:8px;color:#0284c7;">当前：v2.1 (最新)</div>
+              <div style="font-size:8px;color:#0284c7;">历史：v1.0, v1.5</div>
+              <div style="background:#0ea5e9;color:white;padding:4px;border-radius:4px;font-size:8px;margin-top:6px;">查看版本对比</div>
+            </div>
+
+            <!-- 解析详情 -->
+            <div style="background:#fefce8;padding:8px;border-radius:8px;border:1px solid #eab308;">
+              <div style="font-size:9px;color:#a16207;font-weight:bold;margin-bottom:4px;">解析详情</div>
+              <div style="font-size:8px;color:#854d0e;">✓ 文本提取完成</div>
+              <div style="font-size:8px;color:#854d0e;">✓ 表格识别完成</div>
+              <div style="font-size:8px;color:#854d0e;">✓ 向量化完成</div>
+              <div style="font-size:8px;color:#854d0e;">✓ QA生成完成</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">功能模块清单</div>
+  <div style="background:white;border-radius:8px;padding:12px;border:1px solid #22c55e;font-size:11px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div>
+        <div style="font-weight:bold;color:#15803d;margin-bottom:4px;">✅ 已有功能（增强）</div>
+        <ul style="font-size:10px;color:#16a34a;margin-left:12px;">
+          <li>左侧分层导航 → 保持，增加文件数量显示</li>
+          <li>文件列表 → 增加解析状态列、版本列</li>
+          <li>元数据面板 → 增加版本历史、解析详情</li>
+          <li>分类标签 → 保持</li>
+        </ul>
+      </div>
+      <div>
+        <div style="font-weight:bold;color:#15803d;margin-bottom:4px;">🆕 新增功能</div>
+        <ul style="font-size:10px;color:#16a34a;margin-left:12px;">
+          <li>视图切换：文件库 / 解析流水线</li>
+          <li>批量操作栏（选择后显示）</li>
+          <li>解析状态：待解析/解析中/已解析</li>
+          <li>版本管理：版本号+历史对比</li>
+          <li>解析详情展示（各阶段完成状态）</li>
+          <li>进度显示（解析中百分比）</li>
+          <li>单个文件解析控制（暂停/继续）</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="options">
+    <div class="option" data-choice="approve" onclick="toggleSelect(this)">
+      <div class="letter">✓</div>
+      <div class="content">
+        <h3>确认此设计</h3>
+        <p>继续新增页面设计</p>
+      </div>
+    </div>
+    <div class="option" data-choice="modify" onclick="toggleSelect(this)">
+      <div class="letter">✎</div>
+      <div class="content">
+        <h3>需要调整</h3>
+        <p>请在终端说明修改需求</p>
+      </div>
+    </div>
+  </div>
+</div>

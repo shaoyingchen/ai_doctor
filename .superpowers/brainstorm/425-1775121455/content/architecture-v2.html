@@ -1,0 +1,161 @@
+<h2>KMS 知识管理系统 - 页面架构全景</h2>
+<p class="subtitle">基于Gemini原型 + 功能补充，完整页面规划（已移除API网关申请）</p>
+
+<div class="section">
+  <div class="label">系统导航架构</div>
+  <div class="mockup">
+    <div class="mockup-header">侧边栏导航结构</div>
+    <div class="mockup-body" style="background:#f8fafc;padding:16px;">
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;">
+        <!-- 核心功能区 -->
+        <div style="background:#e0f2fe;padding:12px;border-radius:8px;border-left:3px solid #0ea5e9;">
+          <div style="font-weight:bold;color:#0369a1;margin-bottom:8px;">🤖 AI 能力中心</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span style="background:#0ea5e9;color:white;padding:4px 8px;border-radius:4px;">AI博士对话</span>
+            <span style="background:white;padding:4px 8px;border-radius:4px;border:1px solid #0ea5e9;">智能搜索</span>
+            <span style="background:white;padding:4px 8px;border-radius:4px;border:1px solid #0ea5e9;">智能写作</span>
+          </div>
+        </div>
+
+        <!-- 知识库区 -->
+        <div style="background:#f0fdf4;padding:12px;border-radius:8px;border-left:3px solid #22c55e;">
+          <div style="font-weight:bold;color:#15803d;margin-bottom:8px;">📚 知识库</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span style="background:white;padding:4px 8px;border-radius:4px;border:1px solid #22c55e;">个人库</span>
+            <span style="background:white;padding:4px 8px;border-radius:4px;border:1px solid #22c55e;">单位库</span>
+            <span style="background:white;padding:4px 8px;border-radius:4px;border:1px solid #22c55e;">公共库</span>
+            <span style="background:white;padding:4px 8px;border-radius:4px;border:1px solid #22c55e;">公共库广场</span>
+          </div>
+        </div>
+
+        <!-- 知识管理层 -->
+        <div style="background:#fefce8;padding:12px;border-radius:8px;border-left:3px solid #eab308;">
+          <div style="font-weight:bold;color:#a16207;margin-bottom:8px;">⚙️ 知识管理【新增】</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span style="background:#fef3c7;padding:4px 8px;border-radius:4px;border:1px solid #eab308;">文档解析流水线</span>
+            <span style="background:#fef3c7;padding:4px 8px;border-radius:4px;border:1px solid #eab308;">语料标注工作台</span>
+            <span style="background:#fef3c7;padding:4px 8px;border-radius:4px;border:1px solid #eab308;">知识增强管理</span>
+            <span style="background:#fef3c7;padding:4px 8px;border-radius:4px;border:1px solid #eab308;">知识库设置</span>
+          </div>
+        </div>
+
+        <!-- 知识运营层 -->
+        <div style="background:#fae8ff;padding:12px;border-radius:8px;border-left:3px solid #d946ef;">
+          <div style="font-weight:bold;color:#a21caf;margin-bottom:8px;">🔄 知识运营【新增】</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span style="background:#fce7f3;padding:4px 8px;border-radius:4px;border:1px solid #d946ef;">知识飞轮</span>
+            <span style="background:#fce7f3;padding:4px 8px;border-radius:4px;border:1px solid #d946ef;">提示词模板库</span>
+            <span style="background:#fce7f3;padding:4px 8px;border-radius:4px;border:1px solid #d946ef;">Agent配置</span>
+            <span style="background:#fce7f3;padding:4px 8px;border-radius:4px;border:1px solid #d946ef;">质量评估</span>
+          </div>
+        </div>
+
+        <!-- 资源配置层 -->
+        <div style="background:#fee2e2;padding:12px;border-radius:8px;border-left:3px solid #ef4444;">
+          <div style="font-weight:bold;color:#b91c1c;margin-bottom:8px;">🔧 资源配置【新增】</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span style="background:#fecaca;padding:4px 8px;border-radius:4px;border:1px solid #ef4444;">模板库管理</span>
+            <span style="background:#fecaca;padding:4px 8px;border-radius:4px;border:1px solid #ef4444;">权限配置</span>
+          </div>
+        </div>
+
+        <!-- 分析洞察层 -->
+        <div style="background:#e0e7ff;padding:12px;border-radius:8px;border-left:3px solid #6366f1;">
+          <div style="font-weight:bold;color:#4338ca;margin-bottom:8px;">📊 分析洞察【新增】</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span style="background:#c7d2fe;padding:4px 8px;border-radius:4px;border:1px solid #6366f1;">知识图谱可视化</span>
+            <span style="background:#c7d2fe;padding:4px 8px;border-radius:4px;border:1px solid #6366f1;">数据统计分析</span>
+            <span style="background:#c7d2fe;padding:4px 8px;border-radius:4px;border:1px solid #6366f1;">使用日志</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">页面功能详解（点击查看详情）</div>
+  <div class="options" data-multiselect>
+    <div class="option" data-choice="ai-doctor" onclick="toggleSelect(this)">
+      <div class="letter">1</div>
+      <div class="content">
+        <h3>AI博士对话【已有】</h3>
+        <p>沉浸式AI对话界面，需补充：多轮记忆、溯源文档、真实性验证</p>
+      </div>
+    </div>
+    <div class="option" data-choice="search" onclick="toggleSelect(this)">
+      <div class="letter">2</div>
+      <div class="content">
+        <h3>智能搜索【已有】</h3>
+        <p>全文+语义混合检索，需补充：高级筛选、结果排序、导出功能</p>
+      </div>
+    </div>
+    <div class="option" data-choice="write" onclick="toggleSelect(this)">
+      <div class="letter">3</div>
+      <div class="content">
+        <h3>智能写作【已有】</h3>
+        <p>公文起草模板，需补充：模板实例化、历史参考、格式校验</p>
+      </div>
+    </div>
+    <div class="option" data-choice="kb-manage" onclick="toggleSelect(this)">
+      <div class="letter">4</div>
+      <div class="content">
+        <h3>知识库管理【已有】</h3>
+        <p>文件列表+元数据面板，需补充：解析状态、版本管理、批量操作</p>
+      </div>
+    </div>
+    <div class="option" data-choice="pipeline" onclick="toggleSelect(this)">
+      <div class="letter">5</div>
+      <div class="content">
+        <h3>文档解析流水线【新增】</h3>
+        <p>上传→解析→分块→向量化，可视化流水线进度，任务队列管理</p>
+      </div>
+    </div>
+    <div class="option" data-choice="annotation" onclick="toggleSelect(this)">
+      <div class="letter">6</div>
+      <div class="content">
+        <h3>语料标注工作台【新增】</h3>
+        <p>智能规则预处理 + 人工审核，标注进度、质量统计、版本追溯</p>
+      </div>
+    </div>
+    <div class="option" data-choice="enhance" onclick="toggleSelect(this)">
+      <div class="letter">7</div>
+      <div class="content">
+        <h3>知识增强管理【新增】</h3>
+        <p>QA生成、泛化、拆解、验证集/测试集管理，增强结果审核</p>
+      </div>
+    </div>
+    <div class="option" data-choice="flywheel" onclick="toggleSelect(this)">
+      <div class="letter">8</div>
+      <div class="content">
+        <h3>知识运营飞轮【新增】</h3>
+        <p>用户反馈→质量评估→知识补全→规则优化闭环，MetaPrompt编排</p>
+      </div>
+    </div>
+    <div class="option" data-choice="template" onclick="toggleSelect(this)">
+      <div class="letter">9</div>
+      <div class="content">
+        <h3>前置模板库【新增】</h3>
+        <p>公文模板、提示词模板、Agent模板 → 业务实例化 → 可用实例</p>
+      </div>
+    </div>
+    <div class="option" data-choice="graph" onclick="toggleSelect(this)">
+      <div class="letter">10</div>
+      <div class="content">
+        <h3>知识图谱可视化【新增】</h3>
+        <p>文档引用关系、知识关联网络、实体关系图交互探索</p>
+      </div>
+    </div>
+    <div class="option" data-choice="analytics" onclick="toggleSelect(this)">
+      <div class="letter">11</div>
+      <div class="content">
+        <h3>数据统计分析【新增】</h3>
+        <p>知识使用热度、缺口识别、解析效率、用户活跃度分析</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <p style="text-align:center;color:#64748b;font-size:12px;">已移除API网关申请模块，共11个页面。请选择感兴趣的模块继续详细设计。</p>
+</div>

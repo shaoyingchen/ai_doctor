@@ -1,0 +1,296 @@
+<h2>页面设计 07：知识增强管理【新增】</h2>
+<p class="subtitle">QA生成、泛化、拆解、验证集/测试集管理，增强结果审核</p>
+
+<div class="section">
+  <div class="mockup">
+    <div class="mockup-header">知识增强管理 - 完整布局</div>
+    <div class="mockup-body" style="background:#f0fdf4;padding:16px;font-size:11px;">
+
+      <div style="display:flex;gap:12px;">
+        <!-- 左侧：增强任务管理 -->
+        <div style="width:260px;background:white;border-radius:12px;padding:12px;border:2px solid #22c55e;">
+          <div style="font-size:11px;font-weight:bold;color:#15803d;margin-bottom:12px;">🎯 增强任务管理</div>
+
+          <!-- 任务统计 -->
+          <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
+            <div style="background:#e0f2fe;padding:10px;border-radius:8px;border:1px solid #0ea5e9;display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div style="font-size:9px;color:#0369a1;">QA问答对</div>
+                <div style="font-size:16px;font-weight:bold;color:#0284c7;">2,847</div>
+              </div>
+              <div style="background:#0ea5e9;color:white;padding:4px 8px;border-radius:6px;font-size:9px;">生成中</div>
+            </div>
+            <div style="background:#dcfce7;padding:10px;border-radius:8px;border:1px solid #22c55e;display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div style="font-size:9px;color:#15803d;">泛化问题</div>
+                <div style="font-size:16px;font-weight:bold;color:#16a34a;">1,523</div>
+              </div>
+              <div style="background:#22c55e;color:white;padding:4px 8px;border-radius:6px;font-size:9px;">已完成</div>
+            </div>
+            <div style="background:#fefce8;padding:10px;border-radius:8px;border:1px solid #eab308;display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div style="font-size:9px;color:#a16207;">拆解单元</div>
+                <div style="font-size:16px;font-weight:bold;color:#854d0e;">458</div>
+              </div>
+              <div style="background:#eab308;color:white;padding:4px 8px;border-radius:6px;font-size:9px;">待审核</div>
+            </div>
+          </div>
+
+          <!-- 来源文档列表 -->
+          <div style="margin-bottom:12px;">
+            <div style="font-size:10px;font-weight:bold;color:#15803d;margin-bottom:8px;">📚 来源文档</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="background:#22c55e;color:white;padding:8px;border-radius:8px;font-size:10px;">
+                ✓ 数字化转型指南.pdf (QA: 45)
+              </div>
+              <div style="background:#f0fdf4;padding:8px;border-radius:8px;font-size:10px;color:#15803d;border:1px solid #22c55e;">
+                网络安全制度.docx (QA: 32)
+              </div>
+              <div style="background:#f0fdf4;padding:8px;border-radius:8px;font-size:10px;color:#15803d;border:1px solid #22c55e;">
+                人工智能规划.pdf (QA: 28)
+              </div>
+            </div>
+          </div>
+
+          <!-- 验证集/测试集 -->
+          <div style="background:#fae8ff;padding:10px;border-radius:8px;border:1px solid #d946ef;">
+            <div style="font-size:10px;font-weight:bold;color:#a21caf;margin-bottom:8px;">📊 数据集管理</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="background:white;padding:6px;border-radius:6px;font-size:9px;color:#7c3aed;display:flex;justify-content:space-between;">
+                <span>验证集</span>
+                <span style="font-weight:bold;">500条</span>
+              </div>
+              <div style="background:white;padding:6px;border-radius:6px;font-size:9px;color:#7c3aed;display:flex;justify-content:space-between;">
+                <span>测试集</span>
+                <span style="font-weight:bold;">300条</span>
+              </div>
+              <div style="background:#d946ef;color:white;padding:6px;border-radius:6px;font-size:9px;text-align:center;">+ 新增数据集</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 中间：增强内容编辑 -->
+        <div style="flex:1;background:white;border-radius:12px;padding:16px;border:2px solid #22c55e;">
+          <!-- 增强类型切换 -->
+          <div style="display:flex;gap:4px;margin-bottom:12px;background:#f0fdf4;padding:6px;border-radius:8px;">
+            <div style="background:#22c55e;color:white;padding:10px 16px;border-radius:8px;font-size:11px;font-weight:bold;">QA生成</div>
+            <div style="background:white;padding:10px 16px;border-radius:8px;font-size:11px;color:#15803d;border:1px solid #22c55e;">泛化处理</div>
+            <div style="background:white;padding:10px 16px;border-radius:8px;font-size:11px;color:#15803d;border:1px solid #22c55e;">拆解处理</div>
+            <div style="background:white;padding:10px 16px;border-radius:8px;font-size:11px;color:#15803d;border:1px solid #22c55e;">数据集</div>
+          </div>
+
+          <!-- QA生成内容区 -->
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <!-- QA卡片：已确认 -->
+            <div style="background:#dcfce7;padding:12px;border-radius:10px;border:1px solid #22c55e;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <div style="display:flex;gap:8px;">
+                  <div style="background:#22c55e;color:white;padding:6px;border-radius:6px;font-size:10px;">Q</div>
+                  <div style="font-size:11px;color:#15803d;font-weight:bold;">数字化转型的主要目标是什么？</div>
+                </div>
+                <div style="background:#22c55e;color:white;padding:4px 8px;border-radius:6px;font-size:9px;">✓ 已确认</div>
+              </div>
+              <div style="display:flex;gap:8px;margin-bottom:8px;">
+                <div style="background:#0ea5e9;color:white;padding:6px;border-radius:6px;font-size:10px;">A</div>
+                <div style="font-size:11px;color:#0284c7;">到2025年，全市数字化转型取得显著成效，数字产业规模达到5000亿元，数字经济占比超过60%。</div>
+              </div>
+              <!-- 来源追溯 -->
+              <div style="background:#f0fdf4;padding:8px;border-radius:6px;margin-top:8px;">
+                <div style="display:flex;gap:8px;align-items:center;font-size:9px;color:#16a34a;">
+                  <span>📚 来源: 数字化转型指南.pdf</span>
+                  <span>📄 第5-7段</span>
+                  <span>🎯 置信度: 95%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- QA卡片：待审核 -->
+            <div style="background:#fefce8;padding:12px;border-radius:10px;border:1px dashed #eab308;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <div style="display:flex;gap:8px;">
+                  <div style="background:#eab308;color:white;padding:6px;border-radius:6px;font-size:10px;">Q</div>
+                  <div style="font-size:11px;color:#a16207;font-weight:bold;">如何推进数字基础设施建设？</div>
+                  <div style="background:#fef3c7;padding:4px 8px;border-radius:4px;font-size:9px;color:#854d0e;">✏ 可编辑</div>
+                </div>
+                <div style="background:#eab308;color:white;padding:4px 8px;border-radius:6px;font-size:9px;">待审核</div>
+              </div>
+              <div style="display:flex;gap:8px;margin-bottom:8px;">
+                <div style="background:#f59e0b;color:white;padding:6px;border-radius:6px;font-size:10px;">A</div>
+                <div style="font-size:11px;color:#854d0e;background:#fef3c7;padding:8px;border-radius:6px;border:1px dashed #eab308;">
+                  加快5G网络全覆盖，推进千兆光网建设，建设数据中心集群，完善工业互联网基础设施...（点击可编辑）
+                </div>
+              </div>
+              <!-- 审核操作 -->
+              <div style="display:flex;gap:6px;margin-top:8px;">
+                <div style="background:#22c55e;color:white;padding:8px 14px;border-radius:6px;font-size:9px;font-weight:bold;">✓ 确认通过</div>
+                <div style="background:white;border:1px solid #22c55e;padding:8px 14px;border-radius:6px;font-size:9px;color:#15803d;">✏ 编辑修正</div>
+                <div style="background:#fef2f2;border:1px solid #ef4444;padding:8px 14px;border-radius:6px;font-size:9px;color:#dc2626;">✗ 删除</div>
+              </div>
+            </div>
+
+            <!-- QA卡片：泛化问题 -->
+            <div style="background:#fae8ff;padding:12px;border-radius:10px;border:1px solid #d946ef;">
+              <div style="font-size:10px;font-weight:bold;color:#a21caf;margin-bottom:8px;">🔄 泛化问题（同义问法）</div>
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <div style="background:white;padding:8px;border-radius:6px;font-size:10px;color:#7c3aed;display:flex;justify-content:space-between;align-items:center;">
+                  <span>数字化转型的核心目标有哪些？</span>
+                  <div style="display:flex;gap:2px;">
+                    <div style="background:#d946ef;color:white;padding:2px 6px;border-radius:4px;font-size:8px;">✓</div>
+                    <div style="background:#f3e8ff;border:1px solid #d946ef;padding:2px 6px;border-radius:4px;font-size:8px;color:#7c3aed;">✗</div>
+                  </div>
+                </div>
+                <div style="background:white;padding:8px;border-radius:6px;font-size:10px;color:#7c3aed;display:flex;justify-content:space-between;align-items:center;">
+                  <span>数字化转型要达到什么效果？</span>
+                  <div style="display:flex;gap:2px;">
+                    <div style="background:#d946ef;color:white;padding:2px 6px;border-radius:4px;font-size:8px;">✓</div>
+                    <div style="background:#f3e8ff;border:1px solid #d946ef;padding:2px 6px;border-radius:4px;font-size:8px;color:#7c3aed;">✗</div>
+                  </div>
+                </div>
+                <div style="background:#f3e8ff;padding:8px;border-radius:6px;font-size:10px;color:#7c3aed;border:1px dashed #d946ef;">
+                  <span>+ 添加新的泛化问题</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧：配置和统计 -->
+        <div style="width:240px;background:white;border-radius:12px;padding:12px;border:2px solid #22c55e;">
+          <!-- 生成配置 -->
+          <div style="margin-bottom:12px;">
+            <div style="font-size:10px;font-weight:bold;color:#15803d;margin-bottom:8px;">⚙️ 生成配置</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="background:#f0fdf4;padding:8px;border-radius:6px;border:1px solid #22c55e;">
+                <div style="font-size:9px;color:#16a34a;margin-bottom:4px;">QA生成模型</div>
+                <div style="background:#22c55e;color:white;padding:6px;border-radius:6px;font-size:9px;">Claude-3-Sonnet</div>
+              </div>
+              <div style="background:#f0fdf4;padding:8px;border-radius:6px;border:1px solid #22c55e;">
+                <div style="font-size:9px;color:#16a34a;margin-bottom:4px;">生成粒度</div>
+                <div style="display:flex;gap:4px;">
+                  <div style="background:#22c55e;color:white;padding:6px;border-radius:6px;font-size:9px;">段落级</div>
+                  <div style="background:white;border:1px solid #22c55e;padding:6px;border-radius:6px;font-size:9px;color:#15803d;">章节级</div>
+                </div>
+              </div>
+              <div style="background:#f0fdf4;padding:8px;border-radius:6px;border:1px solid #22c55e;">
+                <div style="font-size:9px;color:#16a34a;margin-bottom:4px;">泛化数量</div>
+                <div style="background:white;border:1px solid #22c55e;padding:6px;border-radius:6px;font-size:9px;color:#15803d;">每QA 3-5个</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 质量统计 -->
+          <div style="margin-bottom:12px;">
+            <div style="font-size:10px;font-weight:bold;color:#15803d;margin-bottom:8px;">📊 质量统计</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="background:#dcfce7;padding:8px;border-radius:6px;border:1px solid #22c55e;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div style="font-size:9px;color:#15803d;">QA准确率</div>
+                  <div style="font-size:12px;font-weight:bold;color:#22c55e;">94.5%</div>
+                </div>
+                <div style="height:6px;background:#e2e8f0;border-radius:3px;margin-top:4px;overflow:hidden;">
+                  <div style="width:94.5%;height:100%;background:#22c55e;border-radius:3px;"></div>
+                </div>
+              </div>
+              <div style="background:#e0f2fe;padding:8px;border-radius:6px;border:1px solid #0ea5e9;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div style="font-size:9px;color:#0369a1;">泛化覆盖率</div>
+                  <div style="font-size:12px;font-weight:bold;color:#0ea5e9;">87.3%</div>
+                </div>
+                <div style="height:6px;background:#e2e8f0;border-radius:3px;margin-top:4px;overflow:hidden;">
+                  <div style="width:87.3%;height:100%;background:#0ea5e9;border-radius:3px;"></div>
+                </div>
+              </div>
+              <div style="background:#fefce8;padding:8px;border-radius:6px;border:1px solid #eab308;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div style="font-size:9px;color:#a16207;">拆解完整度</div>
+                  <div style="font-size:12px;font-weight:bold;color:#eab308;">76.8%</div>
+                </div>
+                <div style="height:6px;background:#e2e8f0;border-radius:3px;margin-top:4px;overflow:hidden;">
+                  <div style="width:76.8%;height:100%;background:#eab308;border-radius:3px;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 快捷操作 -->
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="background:#22c55e;color:white;padding:10px;border-radius:8px;font-size:10px;font-weight:bold;text-align:center;">+ 批量生成QA</div>
+            <div style="background:#0ea5e9;color:white;padding:10px;border-radius:8px;font-size:10px;font-weight:bold;text-align:center;">↻ 重新生成</div>
+            <div style="background:#f0fdf4;border:1px solid #22c55e;padding:10px;border-radius:8px;font-size:10px;color:#15803d;text-align:center;">📤 导出数据集</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">拆解处理示例（切换到拆解Tab时显示）</div>
+  <div style="background:white;border-radius:8px;padding:12px;border:1px solid #22c55e;font-size:11px;">
+    <div style="background:#f0fdf4;padding:12px;border-radius:8px;border:1px solid #22c55e;margin-bottom:8px;">
+      <div style="font-size:10px;font-weight:bold;color:#15803d;margin-bottom:8px;">📄 原文档段落</div>
+      <div style="font-size:10px;color:#16a34a;line-height:1.8;">
+        "到2025年，全市数字化转型取得显著成效，数字产业规模达到5000亿元，数字经济占比超过60%。加快5G网络全覆盖，推进千兆光网建设，建设数据中心集群。"
+      </div>
+    </div>
+    <div style="background:#fefce8;padding:12px;border-radius:8px;border:1px solid #eab308;">
+      <div style="font-size:10px;font-weight:bold;color:#a16207;margin-bottom:8px;">🔧 拆解为知识单元</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="background:white;padding:8px;border-radius:6px;font-size:10px;color:#854d0e;border:1px solid #eab308;">
+          <span style="font-weight:bold;">单元1:</span> 目标时间节点 → 2025年
+        </div>
+        <div style="background:white;padding:8px;border-radius:6px;font-size:10px;color:#854d0e;border:1px solid #eab308;">
+          <span style="font-weight:bold;">单元2:</span> 产业规模指标 → 5000亿元
+        </div>
+        <div style="background:white;padding:8px;border-radius:6px;font-size:10px;color:#854d0e;border:1px solid #eab308;">
+          <span style="font-weight:bold;">单元3:</span> 经济占比指标 → 超过60%
+        </div>
+        <div style="background:white;padding:8px;border-radius:6px;font-size:10px;color:#854d0e;border:1px solid #eab308;">
+          <span style="font-weight:bold;">单元4:</span> 基础设施任务 → 5G全覆盖、千兆光网、数据中心
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">功能清单</div>
+  <div style="background:white;border-radius:8px;padding:12px;border:1px solid #22c55e;font-size:11px;">
+    <div style="font-weight:bold;color:#15803d;margin-bottom:6px;">🆕 新增页面核心功能</div>
+    <ul style="font-size:10px;color:#16a34a;margin-left:12px;display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+      <li>增强任务统计（QA/泛化/拆解）</li>
+      <li>来源文档关联管理</li>
+      <li>验证集/测试集管理</li>
+      <li>QA问答对生成与审核</li>
+      <li>泛化问题生成（同义问法）</li>
+      <li>知识单元拆解处理</li>
+      <li>来源追溯（文档+段落+置信度）</li>
+      <li>QA内容编辑修正</li>
+      <li>批量审核操作</li>
+      <li>生成配置（模型/粒度/数量）</li>
+      <li>质量统计指标</li>
+      <li>数据集导出功能</li>
+      <li>批量生成触发</li>
+      <li>重新生成机制</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section">
+  <div class="options">
+    <div class="option" data-choice="approve" onclick="toggleSelect(this)">
+      <div class="letter">✓</div>
+      <div class="content">
+        <h3>确认此设计</h3>
+        <p>继续下一页面</p>
+      </div>
+    </div>
+    <div class="option" data-choice="modify" onclick="toggleSelect(this)">
+      <div class="letter">✎</div>
+      <div class="content">
+        <h3>需要调整</h3>
+        <p>请在终端说明修改需求</p>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,120 @@
+<h2>KMS 页面设计方案对比</h2>
+<p class="subtitle">三种设计方向，请选择最适合的风格</p>
+
+<div class="section">
+  <div class="cards">
+    <div class="card" data-choice="design-a" onclick="toggleSelect(this)">
+      <div class="card-image" style="background:#f8fafc;padding:20px;">
+        <div style="font-size:11px;">
+          <!-- Design A: 简洁专业 -->
+          <div style="background:white;border-radius:8px;padding:12px;border:1px solid #e2e8f0;">
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+              <div style="width:120px;background:#f1f5f9;border-radius:4px;padding:8px;">
+                <div style="font-size:8px;color:#64748b;">侧边栏</div>
+                <div style="margin-top:4px;font-size:7px;">• AI能力<br>• 知识库<br>• 管理<br>• 运营</div>
+              </div>
+              <div style="flex:1;background:#fff;border-radius:4px;padding:8px;border:1px solid #e2e8f0;">
+                <div style="font-size:8px;color:#1e40af;font-weight:bold;">AI博士对话</div>
+                <div style="margin-top:6px;background:#f8fafc;padding:6px;border-radius:4px;font-size:7px;">
+                  <div style="background:#0ea5e9;color:white;padding:4px;border-radius:4px;width:60%;margin-bottom:4px;">AI回答内容...</div>
+                  <div style="background:#64748b;color:white;padding:4px;border-radius:4px;width:40%;margin-left:auto;">用户问题</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>方案A：简洁专业型</h3>
+        <p>延续Gemini现有风格，灰白色系，蓝色点缀。信息密度适中，专注效率。</p>
+        <div class="pros-cons">
+          <div class="pros"><h4>优点</h4><ul><li>风格一致，用户熟悉</li><li>开发量最小</li><li>适合严肃办公场景</li></ul></div>
+          <div class="cons"><h4>缺点</h4><ul><li>视觉较平淡</li><li>缺乏差异化</li></ul></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-choice="design-b" onclick="toggleSelect(this)">
+      <div class="card-image" style="background:#faf5ff;padding:20px;">
+        <div style="font-size:11px;">
+          <!-- Design B: 科技感 -->
+          <div style="background:#0f172a;border-radius:8px;padding:12px;">
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+              <div style="width:120px;background:#1e293b;border-radius:4px;padding:8px;border:1px solid #334155;">
+                <div style="font-size:8px;color:#a855f7;">侧边栏</div>
+                <div style="margin-top:4px;font-size:7px;color:#94a3b8;">🤖 AI能力<br>📚 知识库<br>⚙️ 管理<br>🔄 运营</div>
+              </div>
+              <div style="flex:1;background:#1e293b;border-radius:4px;padding:8px;border:1px solid #7c3aed;">
+                <div style="font-size:8px;color:#a855f7;font-weight:bold;">AI博士对话</div>
+                <div style="margin-top:6px;padding:6px;border-radius:4px;font-size:7px;">
+                  <div style="background:#7c3aed20;border:1px solid #7c3aed;color:#c4b5fd;padding:4px;border-radius:4px;width:60%;margin-bottom:4px;">AI回答内容...</div>
+                  <div style="background:#6366f120;border:1px solid #6366f1;color:#a5b4fc;padding:4px;border-radius:4px;width:40%;margin-left:auto;">用户问题</div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:4px;margin-top:8px;">
+              <div style="background:#7c3aed;height:3px;border-radius:2px;width:30%;"></div>
+              <div style="background:#0ea5e9;height:3px;border-radius:2px;width:25%;"></div>
+              <div style="background:#22c55e;height:3px;border-radius:2px;width:20%;"></div>
+              <div style="background:#f59e0b;height:3px;border-radius:2px;width:15%;"></div>
+              <div style="background:#ef4444;height:3px;border-radius:2px;width:10%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>方案B：科技智能型</h3>
+        <p>深色主题，紫色/蓝色霓虹点缀，强调AI科技感，适合展示智能化能力。</p>
+        <div class="pros-cons">
+          <div class="pros"><h4>优点</h4><ul><li>视觉冲击力强</li><li>突出AI智能属性</li><li>差异化明显</li></ul></div>
+          <div class="cons"><h4>缺点</h4><ul><li>开发量较大</li><li>部分用户可能不习惯深色</li></ul></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-choice="design-c" onclick="toggleSelect(this)">
+      <div class="card-image" style="background:#f0fdf4;padding:20px;">
+        <div style="font-size:11px;">
+          <!-- Design C: 卡片式 -->
+          <div style="background:white;border-radius:12px;padding:12px;border:1px solid #22c55e;">
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+              <div style="width:120px;background:#f0fdf4;border-radius:8px;padding:8px;border:2px solid #22c55e;">
+                <div style="font-size:8px;color:#15803d;font-weight:bold;">导航</div>
+                <div style="margin-top:4px;display:flex;flex-direction:column;gap:3px;">
+                  <div style="background:#22c55e;color:white;padding:3px 6px;border-radius:4px;font-size:7px;">AI</div>
+                  <div style="background:#dcfce7;padding:3px 6px;border-radius:4px;font-size:7px;">知识库</div>
+                  <div style="background:#dcfce7;padding:3px 6px;border-radius:4px;font-size:7px;">管理</div>
+                </div>
+              </div>
+              <div style="flex:1;background:#fff;border-radius:8px;padding:8px;">
+                <div style="font-size:8px;color:#15803d;font-weight:bold;">AI博士对话</div>
+                <div style="margin-top:6px;display:flex;flex-direction:column;gap:4px;font-size:7px;">
+                  <div style="background:#f0fdf4;border:1px solid #22c55e;padding:6px;border-radius:6px;display:flex;gap:4px;">
+                    <div style="width:16px;height:16px;background:#22c55e;border-radius:50%;color:white;font-size:6px;display:flex;align-items:center;justify-content:center;">AI</div>
+                    <div>回答内容展示...</div>
+                  </div>
+                  <div style="background:#bbf7d0;padding:6px;border-radius:6px;margin-left:auto;width:60%;">用户问题</div>
+                </div>
+              </div>
+            </div>
+            <div style="background:#f0fdf4;padding:8px;border-radius:6px;margin-top:8px;">
+              <div style="font-size:7px;color:#15803d;">💡 快捷入口：问答 | 写作 | 分析</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>方案C：现代卡片型</h3>
+        <p>绿色系，大量圆角卡片，强调模块化和可操作性，清新现代感。</p>
+        <div class="pros-cons">
+          <div class="pros"><h4>优点</h4><ul><li>清新易读</li><li>模块边界清晰</li><li>适合知识管理场景</li></ul></div>
+          <div class="cons"><h4>缺点</h4><ul><li>需重新调整配色体系</li><li>卡片过多时可能拥挤</li></ul></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <p style="text-align:center;color:#64748b;font-size:12px;">请点击选择一个设计方向，我会据此详细展开所有页面设计</p>
+</div>

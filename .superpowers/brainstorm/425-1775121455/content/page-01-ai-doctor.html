@@ -1,0 +1,167 @@
+<h2>页面设计 01：AI博士对话</h2>
+<p class="subtitle">综合助手：问答 + 创作 + 分析，增强溯源和真实性验证</p>
+
+<div class="section">
+  <div class="label">页面布局结构</div>
+  <div class="mockup">
+    <div class="mockup-header">AI博士对话 - 完整布局</div>
+    <div class="mockup-body" style="background:#f0fdf4;padding:16px;font-size:11px;">
+
+      <!-- 顶部工具栏 -->
+      <div style="background:white;border-radius:12px;padding:12px;border:2px solid #22c55e;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div style="width:36px;height:36px;background:#22c55e;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;">AI</div>
+          <div>
+            <div style="font-weight:bold;color:#15803d;">AI博士对话</div>
+            <div style="font-size:9px;color:#16a34a;background:#dcfce7;padding:2px 6px;border-radius:4px;">● 在线</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:6px;padding:6px 10px;font-size:9px;color:#15803d;">新对话</div>
+          <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:6px;padding:6px 10px;font-size:9px;color:#15803d;">历史记录</div>
+          <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:6px;padding:6px 10px;font-size:9px;color:#15803d;">导出</div>
+        </div>
+      </div>
+
+      <!-- 主内容区：对话 + 右侧面板 -->
+      <div style="display:flex;gap:12px;">
+
+        <!-- 左侧：对话区 -->
+        <div style="flex:1;background:white;border-radius:12px;padding:16px;border:2px solid #22c55e;">
+
+          <!-- 模式切换Tab -->
+          <div style="display:flex;gap:4px;margin-bottom:12px;background:#f0fdf4;padding:6px;border-radius:8px;">
+            <div style="background:#22c55e;color:white;padding:8px 12px;border-radius:6px;font-size:10px;font-weight:bold;">问答模式</div>
+            <div style="background:white;padding:8px 12px;border-radius:6px;font-size:10px;color:#15803d;border:1px solid #22c55e;">创作模式</div>
+            <div style="background:white;padding:8px 12px;border-radius:6px;font-size:10px;color:#15803d;border:1px solid #22c55e;">分析模式</div>
+          </div>
+
+          <!-- 对话消息区 -->
+          <div style="background:#f0fdf4;border-radius:8px;padding:12px;margin-bottom:12px;min-height:200px;">
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+              <div style="width:28px;height:28px;background:#22c55e;border-radius:8px;color:white;font-size:10px;display:flex;align-items:center;justify-content:center;">AI</div>
+              <div style="flex:1;background:white;padding:10px;border-radius:8px;border:1px solid #22c55e;">
+                <div style="font-size:10px;margin-bottom:8px;">您好，我是AI博士。我可以帮您进行知识问答、内容创作和数据分析。请问有什么可以帮您？</div>
+                <!-- 溯源文档卡片 -->
+                <div style="background:#f0fdf4;border-radius:6px;padding:8px;margin-top:8px;border:1px dashed #22c55e;">
+                  <div style="font-size:9px;color:#15803d;font-weight:bold;margin-bottom:4px;">📚 引用来源</div>
+                  <div style="font-size:8px;color:#16a34a;">• 知识库：公共政策库 / 国家标准规范</div>
+                  <div style="font-size:8px;color:#16a34a;">• 文档：2024数字化转型指南.pdf (第12-15段)</div>
+                  <div style="font-size:8px;color:#16a34a;">• 置信度：98% ✅ 已验证</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:8px;justify-content:flex-end;">
+              <div style="background:#bbf7d0;padding:10px;border-radius:8px;max-width:70%;">
+                <div style="font-size:10px;">帮我查一下最近的数字化转型政策</div>
+              </div>
+              <div style="width:28px;height:28px;background:#15803d;border-radius:8px;color:white;font-size:10px;display:flex;align-items:center;justify-content:center;">U</div>
+            </div>
+          </div>
+
+          <!-- 输入区 -->
+          <div style="background:#f0fdf4;border-radius:10px;padding:12px;border:2px solid #22c55e;">
+            <div style="display:flex;gap:6px;margin-bottom:8px;">
+              <div style="background:white;border:1px solid #22c55e;border-radius:6px;padding:4px 8px;font-size:9px;color:#15803d;">📎 附件</div>
+              <div style="background:white;border:1px solid #22c55e;border-radius:6px;padding:4px 8px;font-size:9px;color:#15803d;">🎤 语音</div>
+              <div style="background:white;border:1px solid #22c55e;border-radius:6px;padding:4px 8px;font-size:9px;color:#15803d;">@ 知识库</div>
+              <div style="background:white;border:1px solid #22c55e;border-radius:6px;padding:4px 8px;font-size:9px;color:#15803d;"># 技能</div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <div style="flex:1;background:white;border-radius:6px;padding:10px;border:1px solid #22c55e;font-size:10px;color:#16a34a;">输入问题或指令，如：帮我起草一份会议通知...</div>
+              <div style="background:#22c55e;color:white;padding:10px 16px;border-radius:6px;font-size:10px;font-weight:bold;">发送 →</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧：功能面板 -->
+        <div style="width:240px;background:white;border-radius:12px;padding:12px;border:2px solid #22c55e;">
+
+          <!-- 会话信息 -->
+          <div style="background:#f0fdf4;border-radius:8px;padding:10px;margin-bottom:12px;">
+            <div style="font-size:9px;font-weight:bold;color:#15803d;margin-bottom:6px;">当前会话</div>
+            <div style="font-size:8px;color:#16a34a;">对话轮次：3</div>
+            <div style="font-size:8px;color:#16a34a;">引用文档：2</div>
+            <div style="font-size:8px;color:#16a34a;">创建时间：10:30</div>
+          </div>
+
+          <!-- 知识库选择 -->
+          <div style="background:#f0fdf4;border-radius:8px;padding:10px;margin-bottom:12px;">
+            <div style="font-size:9px;font-weight:bold;color:#15803d;margin-bottom:6px;">检索范围</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="background:#22c55e;color:white;padding:6px;border-radius:6px;font-size:8px;">✓ 公共知识库</div>
+              <div style="background:white;border:1px solid #22c55e;padding:6px;border-radius:6px;font-size:8px;color:#15803d;">个人库</div>
+              <div style="background:white;border:1px solid #22c55e;padding:6px;border-radius:6px;font-size:8px;color:#15803d;">单位库</div>
+            </div>
+          </div>
+
+          <!-- 真实性验证状态 -->
+          <div style="background:#fefce8;border-radius:8px;padding:10px;border:1px solid #eab308;">
+            <div style="font-size:9px;font-weight:bold;color:#a16207;margin-bottom:6px;">🔍 真实性验证</div>
+            <div style="font-size:8px;color:#854d0e;">• 内容来源已追溯</div>
+            <div style="font-size:8px;color:#854d0e;">• 时效性已检查</div>
+            <div style="font-size:8px;color:#854d0e;">• 无冲突信息</div>
+            <div style="background:#eab308;color:white;padding:4px 8px;border-radius:4px;font-size:8px;margin-top:6px;">验证通过 ✅</div>
+          </div>
+
+          <!-- 快捷技能 -->
+          <div style="margin-top:12px;">
+            <div style="font-size:9px;font-weight:bold;color:#15803d;margin-bottom:6px;">⚡ 快捷技能</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="background:#f0fdf4;border:1px solid #22c55e;padding:6px;border-radius:6px;font-size:8px;color:#15803d;">📝 公文起草</div>
+              <div style="background:#f0fdf4;border:1px solid #22c55e;padding:6px;border-radius:6px;font-size:8px;color:#15803d;">✨ 内容润色</div>
+              <div style="background:#f0fdf4;border:1px solid #22c55e;padding:6px;border-radius:6px;font-size:8px;color:#15803d;">📊 数据分析</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">功能模块清单</div>
+  <div style="background:white;border-radius:8px;padding:12px;border:1px solid #22c55e;font-size:11px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div>
+        <div style="font-weight:bold;color:#15803d;margin-bottom:4px;">✅ 已有功能（增强）</div>
+        <ul style="font-size:10px;color:#16a34a;margin-left:12px;">
+          <li>对话消息展示 → 增强溯源卡片</li>
+          <li>输入框 → 增加@知识库、#技能</li>
+          <li>建议入口 → 改为三种模式切换</li>
+        </ul>
+      </div>
+      <div>
+        <div style="font-weight:bold;color:#15803d;margin-bottom:4px;">🆕 新增功能</div>
+        <ul style="font-size:10px;color:#16a34a;margin-left:12px;">
+          <li>三种模式：问答/创作/分析</li>
+          <li>溯源文档卡片（来源+段落+置信度）</li>
+          <li>真实性验证状态面板</li>
+          <li>右侧功能面板：会话信息、检索范围</li>
+          <li>快捷技能按钮</li>
+          <li>历史记录、导出功能</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="options">
+    <div class="option" data-choice="approve" onclick="toggleSelect(this)">
+      <div class="letter">✓</div>
+      <div class="content">
+        <h3>确认此设计</h3>
+        <p>布局合理，功能完整，继续下一页面设计</p>
+      </div>
+    </div>
+    <div class="option" data-choice="modify" onclick="toggleSelect(this)">
+      <div class="letter">✎</div>
+      <div class="content">
+        <h3>需要调整</h3>
+        <p>请在终端说明需要修改的部分</p>
+      </div>
+    </div>
+  </div>
+</div>

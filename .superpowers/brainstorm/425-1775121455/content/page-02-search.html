@@ -1,0 +1,169 @@
+<h2>页面设计 02：智能搜索</h2>
+<p class="subtitle">全文+语义混合检索，高级筛选，结果排序，导出功能</p>
+
+<div class="section">
+  <div class="mockup">
+    <div class="mockup-header">智能搜索 - 完整布局</div>
+    <div class="mockup-body" style="background:#f0fdf4;padding:16px;font-size:11px;">
+
+      <!-- 搜索头部 -->
+      <div style="background:white;border-radius:12px;padding:16px;border:2px solid #22c55e;margin-bottom:12px;">
+        <!-- 搜索框 -->
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <div style="flex:1;background:#f0fdf4;border-radius:10px;padding:12px;border:2px solid #22c55e;display:flex;align-items:center;gap:8px;">
+            <div style="color:#22c55e;font-size:16px;">🔍</div>
+            <div style="flex:1;font-size:12px;color:#16a34a;">搜索全库知识，如：数字化转型、政策文件、网络安全...</div>
+          </div>
+          <div style="background:#22c55e;color:white;padding:12px 20px;border-radius:10px;font-size:12px;font-weight:bold;">搜索</div>
+        </div>
+
+        <!-- 筛选条件行 -->
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <div style="background:#22c55e;color:white;padding:6px 12px;border-radius:6px;font-size:10px;">全部</div>
+          <div style="background:#f0fdf4;border:1px solid #22c55e;padding:6px 12px;border-radius:6px;font-size:10px;color:#15803d;">文档</div>
+          <div style="background:#f0fdf4;border:1px solid #22c55e;padding:6px 12px;border-radius:6px;font-size:10px;color:#15803d;">政策文件</div>
+          <div style="background:#f0fdf4;border:1px solid #22c55e;padding:6px 12px;border-radius:6px;font-size:10px;color:#15803d;">规章制度</div>
+          <div style="background:#f0fdf4;border:1px solid #22c55e;padding:6px 12px;border-radius:6px;font-size:10px;color:#15803d;">法律法规</div>
+          <div style="background:#f0fdf4;border:1px solid #22c55e;padding:6px 12px;border-radius:6px;font-size:10px;color:#15803d;border-radius:6px;">📅 时间范围</div>
+          <div style="background:#f0fdf4;border:1px solid #22c55e;padding:6px 12px;border-radius:6px;font-size:10px;color:#15803d;">📚 知识库</div>
+          <div style="background:#f0fdf4;border:1px solid #22c55e;padding:6px 12px;border-radius:6px;font-size:10px;color:#15803d;">⚙️ 高级筛选</div>
+        </div>
+
+        <!-- 搜索模式切换 -->
+        <div style="margin-top:12px;display:flex;gap:4px;background:#f0fdf4;padding:4px;border-radius:8px;">
+          <div style="background:#22c55e;color:white;padding:6px 12px;border-radius:6px;font-size:9px;">混合检索</div>
+          <div style="background:white;padding:6px 12px;border-radius:6px;font-size:9px;color:#15803d;">语义检索</div>
+          <div style="background:white;padding:6px 12px;border-radius:6px;font-size:9px;color:#15803d;">关键词检索</div>
+        </div>
+      </div>
+
+      <!-- 结果统计和排序 -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="background:white;border-radius:8px;padding:8px 12px;border:1px solid #22c55e;font-size:10px;color:#15803d;">
+          约有 <span style="color:#22c55e;font-weight:bold;">1,240</span> 条结果 | 用时 <span style="color:#22c55e;">0.04s</span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <div style="background:white;border:1px solid #22c55e;border-radius:6px;padding:6px 10px;font-size:9px;color:#15803d;">排序：相关度 ↓</div>
+          <div style="background:white;border:1px solid #22c55e;border-radius:6px;padding:6px 10px;font-size:9px;color:#15803d;">时间 ↓</div>
+          <div style="background:#22c55e;color:white;border-radius:6px;padding:6px 10px;font-size:9px;">导出结果</div>
+        </div>
+      </div>
+
+      <!-- 搜索结果列表 -->
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <!-- 结果卡片1 -->
+        <div style="background:white;border-radius:12px;padding:12px;border:2px solid #22c55e;">
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div style="background:#fef2f2;padding:6px;border-radius:6px;border:1px solid #ef4444;font-size:10px;color:#dc2626;">PDF</div>
+              <div style="font-weight:bold;color:#15803d;font-size:12px;">数字化转型行动计划2024</div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:4px;padding:4px;font-size:9px;color:#15803d;">🔖 收藏</div>
+              <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:4px;padding:4px;font-size:9px;color:#15803d;">📋 复制</div>
+            </div>
+          </div>
+          <div style="font-size:10px;color:#16a34a;background:#f0fdf4;padding:8px;border-radius:6px;margin-bottom:8px;">
+            ...为了贯彻落实国家关于<span style="background:#bbf7d0;color:#15803d;font-weight:bold;padding:2px;">数字化转型</span>的战略部署，进一步推动高质量发展...
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;font-size:9px;color:#15803d;">
+            <span>📅 2024-03-15</span>
+            <span>📚 公共知识库</span>
+            <span>📁 政策文件</span>
+            <span style="background:#dcfce7;color:#15803d;padding:2px 6px;border-radius:4px;">匹配度 98%</span>
+          </div>
+        </div>
+
+        <!-- 结果卡片2 -->
+        <div style="background:white;border-radius:12px;padding:12px;border:2px solid #22c55e;">
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div style="background:#dbeafe;padding:6px;border-radius:6px;border:1px solid #3b82f6;font-size:10px;color:#1d4ed8;">DOC</div>
+              <div style="font-weight:bold;color:#15803d;font-size:12px;">网络安全管理制度修订版</div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:4px;padding:4px;font-size:9px;color:#15803d;">🔖 收藏</div>
+              <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:4px;padding:4px;font-size:9px;color:#15803d;">📋 复制</div>
+            </div>
+          </div>
+          <div style="font-size:10px;color:#16a34a;background:#f0fdf4;padding:8px;border-radius:6px;margin-bottom:8px;">
+            ...加强<span style="background:#bbf7d0;color:#15803d;font-weight:bold;padding:2px;">数字化</span>建设过程中的<span style="background:#bbf7d0;color:#15803d;font-weight:bold;padding:2px;">网络安全</span>管理，落实主体责任...
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;font-size:9px;color:#15803d;">
+            <span>📅 2024-02-20</span>
+            <span>📚 单位知识库</span>
+            <span>📁 内部制度</span>
+            <span style="background:#fef9c3;color:#854d0e;padding:2px 6px;border-radius:4px;">匹配度 85%</span>
+          </div>
+        </div>
+
+        <!-- 结果卡片3 - 简化展示 -->
+        <div style="background:white;border-radius:12px;padding:12px;border:1px solid #22c55e;">
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div style="background:#fef2f2;padding:6px;border-radius:6px;font-size:10px;color:#dc2626;">PDF</div>
+            <div style="font-size:12px;color:#15803d;">人工智能发展规划纲要...</div>
+            <span style="background:#e0f2fe;color:#0369a1;padding:2px 6px;border-radius:4px;font-size:9px;">匹配度 72%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 分页 -->
+      <div style="display:flex;justify-content:center;gap:6px;margin-top:16px;">
+        <div style="background:#22c55e;color:white;padding:8px 12px;border-radius:6px;font-size:10px;">1</div>
+        <div style="background:white;border:1px solid #22c55e;padding:8px 12px;border-radius:6px;font-size:10px;color:#15803d;">2</div>
+        <div style="background:white;border:1px solid #22c55e;padding:8px 12px;border-radius:6px;font-size:10px;color:#15803d;">3</div>
+        <div style="background:white;border:1px solid #22c55e;padding:8px 12px;border-radius:6px;font-size:10px;color:#15803d;">...</div>
+        <div style="background:white;border:1px solid #22c55e;padding:8px 12px;border-radius:6px;font-size:10px;color:#15803d;">124</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">功能模块清单</div>
+  <div style="background:white;border-radius:8px;padding:12px;border:1px solid #22c55e;font-size:11px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div>
+        <div style="font-weight:bold;color:#15803d;margin-bottom:4px;">✅ 已有功能（增强）</div>
+        <ul style="font-size:10px;color:#16a34a;margin-left:12px;">
+          <li>搜索框 → 保持，增加搜索模式切换</li>
+          <li>筛选标签 → 增加"时间范围"、"知识库"、"高级筛选"</li>
+          <li>结果卡片 → 增加收藏、复制按钮</li>
+          <li>匹配度显示 → 保持</li>
+        </ul>
+      </div>
+      <div>
+        <div style="font-weight:bold;color:#15803d;margin-bottom:4px;">🆕 新增功能</div>
+        <ul style="font-size:10px;color:#16a34a;margin-left:12px;">
+          <li>三种搜索模式：混合/语义/关键词</li>
+          <li>高级筛选面板（弹出式）</li>
+          <li>时间范围选择器</li>
+          <li>知识库范围选择</li>
+          <li>排序方式切换（相关度/时间）</li>
+          <li>导出搜索结果（批量导出）</li>
+          <li>收藏功能</li>
+          <li>分页导航</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="options">
+    <div class="option" data-choice="approve" onclick="toggleSelect(this)">
+      <div class="letter">✓</div>
+      <div class="content">
+        <h3>确认此设计</h3>
+        <p>继续下一页面设计</p>
+      </div>
+    </div>
+    <div class="option" data-choice="modify" onclick="toggleSelect(this)">
+      <div class="letter">✎</div>
+      <div class="content">
+        <h3>需要调整</h3>
+        <p>请在终端说明修改需求</p>
+      </div>
+    </div>
+  </div>
+</div>
