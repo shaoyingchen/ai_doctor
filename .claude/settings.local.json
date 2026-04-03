@@ -1,18 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(bash:*)",
-      "Bash(npm create:*)",
-      "Bash(npm init:*)",
-      "Bash(mv temp-project/* .)",
-      "Bash(mv temp-project/.* .)",
-      "Bash(rmdir temp-project:*)",
-      "Bash(npm install:*)",
-      "Bash(npx tailwindcss:*)",
-      "Bash(npm list:*)",
-      "Bash(npm uninstall:*)",
-      "Bash(npm run:*)",
-      "Bash(grep -l \"import { .*} from '@/types'\" src/stores/*.ts)"
+      "Bash(npm run:*)"
     ]
   }
 }

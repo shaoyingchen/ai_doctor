@@ -108,7 +108,7 @@ export const Sidebar: React.FC = () => {
         </div>
         {sidebarOpen && (
           <span className="font-bold text-slate-700 tracking-tight truncate">
-            知识管理系统
+            AI Doctor
           </span>
         )}
       </div>

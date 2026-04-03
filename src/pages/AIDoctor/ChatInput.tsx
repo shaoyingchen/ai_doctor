@@ -73,19 +73,19 @@ export function ChatInput({ onSend, disabled, className }: ChatInputProps) {
     <div className={cn("bg-white border-t border-slate-200 p-4", className)}>
       {/* Attachments Preview */}
       {attachments.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-3">
+        <div className="flex flex-wrap gap-2 mb-2 pb-2">
           {attachments.map((file, index) => (
             <div
               key={index}
-              className="flex items-center gap-2 bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-sm"
+              className="flex items-center gap-2 bg-primary-50 text-slate-600 px-2.5 py-1.5 rounded-lg text-xs"
             >
-              <FileText className="w-4 h-4" />
-              <span className="max-w-[150px] truncate">{file.name}</span>
+              <FileText className="w-3.5 h-3.5 text-primary" />
+              <span className="max-w-[120px] truncate">{file.name}</span>
               <button
                 onClick={() => removeAttachment(index)}
                 className="text-slate-400 hover:text-red-500"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           ))}
@@ -93,9 +93,9 @@ export function ChatInput({ onSend, disabled, className }: ChatInputProps) {
       )}
 
       {/* Input Area */}
-      <div className="flex items-end gap-3">
+      <div className="flex items-end gap-2">
         {/* Tool Buttons */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5">
           <input
             ref={fileInputRef}
             type="file"
@@ -105,10 +105,10 @@ export function ChatInput({ onSend, disabled, className }: ChatInputProps) {
           />
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="p-2 text-slate-400 hover:text-primary hover:bg-primary-50 rounded-lg transition-colors"
+            className="p-2 text-slate-400 hover:text-primary hover:bg-slate-100 rounded-lg transition-colors"
             title="添加附件"
           >
-            <Paperclip className="w-5 h-5" />
+            <Paperclip className="w-4 h-4" />
           </button>
           <button
             onClick={handleVoiceRecord}
@@ -116,11 +116,11 @@ export function ChatInput({ onSend, disabled, className }: ChatInputProps) {
               "p-2 rounded-lg transition-colors",
               isRecording
                 ? "text-red-500 bg-red-50"
-                : "text-slate-400 hover:text-primary hover:bg-primary-50"
+                : "text-slate-400 hover:text-primary hover:bg-slate-100"
             )}
             title="语音输入"
           >
-            <Mic className="w-5 h-5" />
+            <Mic className="w-4 h-4" />
           </button>
           <button
             onClick={() => setShowKBPicker(!showKBPicker)}
@@ -128,11 +128,11 @@ export function ChatInput({ onSend, disabled, className }: ChatInputProps) {
               "p-2 rounded-lg transition-colors",
               showKBPicker
                 ? "text-primary bg-primary-50"
-                : "text-slate-400 hover:text-primary hover:bg-primary-50"
+                : "text-slate-400 hover:text-primary hover:bg-slate-100"
             )}
             title="@知识库"
           >
-            <Database className="w-5 h-5" />
+            <Database className="w-4 h-4" />
           </button>
           <button
             onClick={() => setShowSkillPicker(!showSkillPicker)}
@@ -140,11 +140,11 @@ export function ChatInput({ onSend, disabled, className }: ChatInputProps) {
               "p-2 rounded-lg transition-colors",
               showSkillPicker
                 ? "text-primary bg-primary-50"
-                : "text-slate-400 hover:text-primary hover:bg-primary-50"
+                : "text-slate-400 hover:text-primary hover:bg-slate-100"
             )}
             title="#技能"
           >
-            <Hash className="w-5 h-5" />
+            <Hash className="w-4 h-4" />
           </button>
         </div>
 
@@ -155,14 +155,14 @@ export function ChatInput({ onSend, disabled, className }: ChatInputProps) {
             value={message}
             onChange={handleInput}
             onKeyDown={handleKeyDown}
-            placeholder="输入消息... (Shift+Enter 换行)"
+            placeholder="输入消息..."
             disabled={disabled}
             rows={1}
             className={cn(
-              "w-full resize-none border border-slate-200 rounded-xl px-4 py-3 pr-12",
-              "focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent",
-              "placeholder:text-slate-400 text-slate-700",
-              "min-h-[48px] max-h-[200px]",
+              "w-full resize-none bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3",
+              "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white",
+              "placeholder:text-slate-400 text-slate-700 text-sm",
+              "min-h-[44px] max-h-[200px]",
               disabled && "opacity-50 cursor-not-allowed"
             )}
           />
@@ -172,13 +172,13 @@ export function ChatInput({ onSend, disabled, className }: ChatInputProps) {
         <Button
           onClick={handleSend}
           disabled={disabled || (!message.trim() && attachments.length === 0)}
-          className="flex-shrink-0"
+          className="flex-shrink-0 rounded-xl"
           size="icon"
         >
           {disabled ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            <Send className="w-5 h-5" />
+            <Send className="w-4 h-4" />
           )}
         </Button>
       </div>
