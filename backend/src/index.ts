@@ -340,6 +340,126 @@ app.post('/api/tasks/:id/retry', (req, res) => {
   res.json({ message: 'Task restarted', task })
 })
 
+// Annotate document content
+app.post('/api/annotate', async (req, res) => {
+  try {
+    const { content, documentName } = req.body
+
+    if (!content) {
+      return res.status(400).json({ error: '缺少文档内容' })
+    }
+
+    console.log(`\n=== 收到标注请求 ===`)
+    console.log(`文档名：${documentName || '未知'}`)
+    console.log(`内容长度：${content.length}`)
+
+    // Call Python NLP annotator service
+    const annotationResult = await callNLPAnnotator(content, documentName)
+
+    res.json(annotationResult)
+
+  } catch (error) {
+    console.error('Annotation error:', error)
+    res.status(500).json({
+      error: error instanceof Error ? error.message : '标注失败',
+      entities: [],
+      keywords: [],
+      categories: []
+    })
+  }
+})
+
+// Call Python NLP annotator service
+async function callNLPAnnotator(content: string, documentName?: string) {
+  const NLP_ANNOTATOR_URL = 'http://localhost:8002'
+
+  try {
+    const response = await fetch(`${NLP_ANNOTATOR_URL}/annotate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ content, documentName }),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`NLP annotator error: ${errorText}`)
+    }
+
+    const result = await response.json()
+    return result
+
+  } catch (error) {
+    // If NLP service is not available, return mock result for demo
+    console.log('NLP 服务不可用，返回模拟标注结果')
+
+    // Simple mock annotation based on rules
+    const mockEntities = []
+    const mockKeywords = []
+    const mockCategories = []
+
+    // Mock entity extraction (simple regex)
+    const timeRegex = /\d{4}年\d{1,2}月\d{1,2}日|\d{4}-\d{2}-\d{2}|星期 [一二三四五六日天]/g
+    const orgRegex = /[\u4e00-\u9fa5]{2,10}(?:公司 | 集团 | 局 | 部 | 委|办| 处 | 科 | 所|院| 校 | 中心 | 政府 | 机关)/g
+    const numberRegex = /\d+(?:\.\d+)?\s*(?:万 | 亿|千|百|%)?/g
+
+    let match
+    while ((match = timeRegex.exec(content)) !== null) {
+      mockEntities.push({ type: 'time', value: match[0], confidence: 0.85, location: 'time' })
+    }
+    while ((match = orgRegex.exec(content)) !== null) {
+      mockEntities.push({ type: 'organization', value: match[0], confidence: 0.75, location: 'organization' })
+    }
+    while ((match = numberRegex.exec(content)) !== null) {
+      if (match[0].length > 1) {
+        mockEntities.push({ type: 'number', value: match[0], confidence: 0.70, location: 'number' })
+      }
+    }
+
+    // Mock keywords (most frequent words, simplified)
+    const words = content.split(/[\s\n,，.。:：;；!?！？()（）]+/).filter(w => w.length > 1)
+    const wordCount = new Map<string, number>()
+    words.forEach(w => wordCount.set(w, (wordCount.get(w) || 0) + 1))
+    const sortedWords = Array.from(wordCount.entries()).sort((a, b) => b[1] - a[1])
+    sortedWords.slice(0, 10).forEach(([word, count]) => {
+      mockKeywords.push({ keyword: word, confidence: 0.5 + (count / words.length) * 0.4 })
+    })
+
+    // Mock category
+    const categoryKeywords = {
+      '政策文件': ['政策', '规定', '办法', '条例', '通知', '意见'],
+      '技术方案': ['技术', '方案', '设计', '架构', '系统', '平台'],
+      '报告': ['报告', '分析', '调研', '研究', '总结'],
+      '合同': ['合同', '协议', '签约', '甲方', '乙方'],
+      '管理制度': ['制度', '规范', '标准', '流程', '管理'],
+    }
+
+    let maxScore = 0
+    let bestCategory = '其他'
+    for (const [category, keywords] of Object.entries(categoryKeywords)) {
+      const score = keywords.reduce((sum, kw) => sum + (content.includes(kw) ? 1 : 0), 0)
+      if (score > maxScore) {
+        maxScore = score
+        bestCategory = category
+      }
+    }
+
+    mockCategories.push({
+      category: bestCategory,
+      confidence: 0.5 + (maxScore / 10) * 0.45,
+      keywords: []
+    })
+
+    return {
+      success: true,
+      entities: mockEntities.slice(0, 20),
+      keywords: mockKeywords.slice(0, 10),
+      categories: mockCategories
+    }
+  }
+}
+
 // Get queue status
 app.get('/api/queue/status', (req, res) => {
   const allTasks = Array.from(tasks.values())

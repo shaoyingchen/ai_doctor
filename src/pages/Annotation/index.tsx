@@ -57,14 +57,15 @@ const ConfidenceBar: React.FC<{ confidence: number }> = ({ confidence }) => {
 }
 
 // Entity type badge
-const EntityTypeBadge: React.FC<{ type: EntityType }> = ({ type }) => {
-  const config = {
+const EntityTypeBadge: React.FC<{ type: EntityType | string }> = ({ type }) => {
+  const config: Record<string, { label: string; color: string }> = {
     region: { label: '地区', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
     time: { label: '时间', color: 'bg-blue-100 text-blue-700 border-blue-300' },
     number: { label: '数值', color: 'bg-green-100 text-green-700 border-green-300' },
     organization: { label: '组织', color: 'bg-purple-100 text-purple-700 border-purple-300' },
+    location: { label: '地点', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
   }
-  const { label, color } = config[type]
+  const { label, color } = config[type] || { label: type, color: 'bg-slate-100 text-slate-700 border-slate-300' }
   return (
     <span className={cn('px-1.5 py-0.5 rounded-xs text-xs border', color)}>
       {label}
@@ -242,9 +243,18 @@ const AnnotationEditorPanel: React.FC = () => {
     tasks,
     showAutoAnnotations,
     toggleShowAutoAnnotations,
+    loadAutoAnnotations,
   } = useAnnotationStore()
 
   const task = tasks.find(t => t.id === selectedTaskId)
+  const [isAutoAnnotating, setIsAutoAnnotating] = useState(false)
+
+  const handleAutoAnnotate = async () => {
+    if (!currentDocument || !task) return
+    setIsAutoAnnotating(true)
+    await loadAutoAnnotations(task.id, currentDocument.content)
+    setIsAutoAnnotating(false)
+  }
 
   // Render document content with highlights
   const renderContent = useMemo(() => {
@@ -310,6 +320,16 @@ const AnnotationEditorPanel: React.FC = () => {
           <StatusBadge status={task.status} />
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="default"
+            onClick={handleAutoAnnotate}
+            disabled={isAutoAnnotating || task.status === 'approved' || task.status === 'rejected'}
+            className="gap-1"
+          >
+            <RefreshCw size={16} className={cn(isAutoAnnotating && "animate-spin")} />
+            {isAutoAnnotating ? '标注中...' : '自动标注'}
+          </Button>
           <Button
             size="sm"
             variant="ghost"

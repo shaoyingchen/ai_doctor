@@ -1,9 +1,12 @@
 import { create } from 'zustand'
-import type { AnnotationTask, AutoAnnotation, ManualAnnotation } from '@/types'
+import type { AnnotationTask, AutoAnnotation, ManualAnnotation, NLPAnnotationResult, EntityAnnotation, KeywordAnnotation, CategoryAnnotation } from '@/types'
 
 export type AnnotationStatus = 'pending' | 'in_progress' | 'approved' | 'rejected'
 export type AnnotationType = 'category' | 'entity' | 'keyword'
 export type EntityType = 'region' | 'time' | 'number' | 'organization'
+
+// API base URL
+const API_BASE_URL = 'http://localhost:8000'
 
 interface AnnotationStats {
   pending: number
@@ -66,6 +69,10 @@ interface AnnotationState {
   toggleShowAutoAnnotations: () => void
   setActiveAnnotationType: (type: AnnotationType) => void
   resetAnnotations: () => void
+
+  // Auto annotation
+  autoAnnotateDocument: (content: string, documentName?: string) => Promise<NLPAnnotationResult | null>
+  loadAutoAnnotations: (taskId: string, content: string) => Promise<void>
 }
 
 // Mock data for demonstration
@@ -439,5 +446,74 @@ export const useAnnotationStore = create<AnnotationState>((set, get) => ({
         set({ manualAnnotations: task.manualAnnotations })
       }
     }
+  },
+
+  // Auto annotate document using NLP service
+  autoAnnotateDocument: async (content, documentName) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/annotate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content, documentName }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Annotation service error')
+      }
+
+      const result: NLPAnnotationResult = await response.json()
+      return result
+    } catch (error) {
+      console.error('Auto annotation failed:', error)
+      return null
+    }
+  },
+
+  // Load auto annotations for a task
+  loadAutoAnnotations: async (taskId, content) => {
+    const task = get().tasks.find(t => t.id === taskId)
+    if (!task) return
+
+    const result = await get().autoAnnotateDocument(content, task.documentName)
+    if (!result || !result.success) return
+
+    // Convert NLP result to AutoAnnotation format
+    const autoAnnotations: AutoAnnotation[] = []
+
+    // Add entities
+    result.entities.forEach((entity: EntityAnnotation) => {
+      autoAnnotations.push({
+        type: 'entity',
+        value: entity.value,
+        confidence: entity.confidence,
+        location: entity.type,
+      })
+    })
+
+    // Add keywords
+    result.keywords.forEach((keyword: KeywordAnnotation) => {
+      autoAnnotations.push({
+        type: 'keyword',
+        value: keyword.keyword,
+        confidence: keyword.confidence,
+      })
+    })
+
+    // Add categories
+    result.categories.forEach((category: CategoryAnnotation) => {
+      autoAnnotations.push({
+        type: 'category',
+        value: category.category,
+        confidence: category.confidence,
+      })
+    })
+
+    // Update task with auto annotations
+    const updatedTasks = get().tasks.map(t =>
+      t.id === taskId ? { ...t, autoAnnotations } : t
+    )
+    set({ tasks: updatedTasks })
   },
 }))

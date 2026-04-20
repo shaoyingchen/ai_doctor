@@ -1,0 +1,18 @@
+# AI Doctor NLP Annotator Service Dependencies
+
+# Web Framework
+fastapi>=0.100.0
+uvicorn>=0.23.0
+pydantic>=2.0.0
+
+# Chinese NLP
+jieba>=0.42.0        # 中文分词和关键词提取
+
+# Optional: Advanced NLP (uncomment if needed)
+# hanlp>=5.0.0       # 更强大的实体识别
+# scikit-learn>=1.3.0  # 机器学习分类器
+
+# Parser dependencies (if running standalone)
+PyMuPDF>=1.23.0      # PDF 解析
+python-docx>=0.8.11  # DOCX 解析
+chardet>=5.0.0       # 编码检测

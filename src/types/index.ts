@@ -101,13 +101,45 @@ export interface AutoAnnotation {
   type: 'category' | 'entity' | 'keyword'
   value: string
   confidence: number
-  location?: string
+  location?: string  // 用于实体类型，表示实体类别
+  start_pos?: number
+  end_pos?: number
 }
 
 export interface ManualAnnotation {
   type: 'category' | 'entity' | 'keyword'
   value: string
   verified: boolean
+}
+
+// NLP 自动标注结果
+export interface NLPAnnotationResult {
+  success: boolean
+  entities: EntityAnnotation[]
+  keywords: KeywordAnnotation[]
+  categories: CategoryAnnotation[]
+  error?: string
+}
+
+export interface EntityAnnotation {
+  type: 'organization' | 'location' | 'time' | 'number'
+  value: string
+  confidence: number
+  location: string
+  start_pos?: number
+  end_pos?: number
+}
+
+export interface KeywordAnnotation {
+  keyword: string
+  confidence: number
+  score?: number
+}
+
+export interface CategoryAnnotation {
+  category: string
+  confidence: number
+  keywords?: string[]
 }
 
 // 知识增强相关
