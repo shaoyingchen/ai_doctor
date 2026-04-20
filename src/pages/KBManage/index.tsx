@@ -1,12 +1,13 @@
 import { KBTree } from './KBTree'
 import { FileTable } from './FileTable'
 import { MetadataPanel } from './MetadataPanel'
+import { PipelineView } from './PipelineView'
 import { useKBStore } from '@/stores/kbStore'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { FileText, Layers } from 'lucide-react'
 
 export default function KBManage() {
-  const { viewMode, setViewMode, clearFileSelection } = useKBStore()
+  const { viewMode, setViewMode, clearFileSelection, selectedFile } = useKBStore()
 
   const handleViewModeChange = (value: string) => {
     setViewMode(value as 'files' | 'pipeline')
@@ -46,18 +47,12 @@ export default function KBManage() {
           <KBTree />
         </div>
 
-        {/* Middle - File Table */}
+        {/* Middle - File Table or Pipeline View */}
         <div className="flex-1 bg-white overflow-hidden">
           {viewMode === 'files' ? (
             <FileTable />
           ) : (
-            <div className="h-full flex items-center justify-center text-slate-400">
-              <div className="text-center">
-                <Layers className="w-12 h-12 mx-auto mb-2" />
-                <p className="text-sm">解析流水线视图</p>
-                <p className="text-xs mt-1">开发中...</p>
-              </div>
-            </div>
+            <PipelineView documentId={selectedFile?.id} />
           )}
         </div>
 
@@ -74,3 +69,4 @@ export default function KBManage() {
 export { KBTree } from './KBTree'
 export { FileTable } from './FileTable'
 export { MetadataPanel } from './MetadataPanel'
+export { PipelineView } from './PipelineView'

@@ -1,11 +1,10 @@
 import React from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import {
-  Cpu, Search, PenTool, Book, Database,
+  Cpu, Search, PenTool, BookOpen, Database,
   Settings, RefreshCw, Sparkles, FolderOpen
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { useLayoutStore } from '@/stores/layoutStore'
 
 interface MenuItem {
   id: string
@@ -18,7 +17,7 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   {
     id: 'ai-doctor',
-    label: 'AI博士对话',
+    label: 'AI 博士对话',
     icon: <Cpu size={18} />,
     path: '/ai-doctor',
   },
@@ -37,7 +36,7 @@ const menuItems: MenuItem[] = [
   {
     id: 'kb',
     label: '知识库',
-    icon: <Book size={18} />,
+    icon: <BookOpen size={18} />,
     path: '/kb',
   },
   {
@@ -87,30 +86,21 @@ const menuItems: MenuItem[] = [
 export const Sidebar: React.FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const { sidebarOpen, setActiveMenu } = useLayoutStore()
 
   const handleMenuClick = (item: MenuItem) => {
-    setActiveMenu(item.id)
     navigate(item.path)
   }
 
   return (
-    <div
-      className={cn(
-        "bg-slate-50 border-r border-slate-200 h-screen flex flex-col shrink-0 transition-all duration-300",
-        sidebarOpen ? "w-64" : "w-20"
-      )}
-    >
+    <div className="w-64 bg-slate-50 border-r border-slate-200 h-screen flex flex-col shrink-0">
       {/* Logo */}
       <div className="p-4 flex items-center gap-3 border-b border-slate-200 bg-white">
         <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white shadow-sm shrink-0">
-          <Book size={20} />
+          <BookOpen size={20} />
         </div>
-        {sidebarOpen && (
-          <span className="font-bold text-slate-700 tracking-tight truncate">
-            AI Doctor
-          </span>
-        )}
+        <span className="font-bold text-slate-700 tracking-tight truncate">
+          AI Doctor
+        </span>
       </div>
 
       {/* Menu */}
@@ -131,7 +121,7 @@ export const Sidebar: React.FC = () => {
               )}
             >
               <span className="shrink-0">{item.icon}</span>
-              {sidebarOpen && <span>{item.label}</span>}
+              <span>{item.label}</span>
             </button>
           ))}
         </nav>
@@ -143,13 +133,11 @@ export const Sidebar: React.FC = () => {
           <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs shadow-md shrink-0">
             张
           </div>
-          {sidebarOpen && (
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-bold text-slate-700 truncate">张三</div>
-              <div className="text-[10px] text-slate-400 truncate">在线 · 浦东办公室</div>
-            </div>
-          )}
-          {sidebarOpen && <Settings size={14} className="text-slate-300 hover:text-slate-600 cursor-pointer" />}
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-bold text-slate-700 truncate">张三</div>
+            <div className="text-[10px] text-slate-400 truncate">在线 · 浦东办公室</div>
+          </div>
+          <Settings size={14} className="text-slate-300 hover:text-slate-600 cursor-pointer" />
         </div>
       </div>
     </div>

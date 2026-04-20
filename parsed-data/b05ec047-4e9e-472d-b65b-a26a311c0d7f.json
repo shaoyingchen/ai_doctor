@@ -1,0 +1,13 @@
+{
+  "success": true,
+  "content": "这是一个测试文本文件\n",
+  "chunks": [
+    {
+      "text": "这是一个测试文本文件",
+      "metadata": {
+        "chunk_type": "paragraphs"
+      }
+    }
+  ],
+  "metadata": {}
+}

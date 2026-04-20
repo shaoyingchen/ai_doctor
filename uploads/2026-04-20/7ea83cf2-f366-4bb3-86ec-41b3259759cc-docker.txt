@@ -1,0 +1,20 @@
+RUN mkdir -p /root/server/logs
+RUN mkdir -p /root/server/temp
+RUN mkdir -p /root/server/dump
+RUN mkdir -p /opt/data && chmod 755 /opt/data
+RUN rm -f /etc/localtime \
+&& ln -sv /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+&& echo "Asia/Shanghai" > /etc/timezone
+WORKDIR /root/server
+ENV JVM_Xms=512m
+ENV JVM_Xmx=2048m
+ENV APOLLO_META=http://48.250.204.132:8030/
+ENV APOLLO_CLUSTER=""
+ENV SV_PORT=20781
+ENV JARFILE=XX
+
+RUN echo 'set -x && env && pwd && /root/server/jdk1.8.0_202/bin/java -javaagent:/root/server/log4x/log4x-agent.jar -Dfile.encoding=UTF-8 -Dapollo.meta=${APOLLO_META} -Dapollo.cluster=${APOLLO_CLUSTER} -Djava.security.egd=file:/dev/urandom -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/root/server/dump -XX:+StartAttachListener -Xms${JVM_Xms} -Xmx${JVM_Xmx} -Djava.io.tmpdir=temp -Dlogging.file.path=logs -Dspring.profiles.active=prod -jar ${JARFILE}' >/root/server/bin/start.sh
+RUN echo 'sleep 900' >>/root/server/bin/start.sh
+
+ENTRYPOINT [""]
+CMD bash /root/server/bin/start.sh

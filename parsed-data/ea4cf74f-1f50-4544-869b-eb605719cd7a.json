@@ -1,0 +1,19 @@
+{
+  "success": true,
+  "content": "RUN mkdir -p /root/server/logs\nRUN mkdir -p /root/server/temp\nRUN mkdir -p /root/server/dump\nRUN mkdir -p /opt/data && chmod 755 /opt/data\nRUN rm -f /etc/localtime \\\n&& ln -sv /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \\\n&& echo \"Asia/Shanghai\" > /etc/timezone\nWORKDIR /root/server\nENV JVM_Xms=512m\nENV JVM_Xmx=2048m\nENV APOLLO_META=http://48.250.204.132:8030/\nENV APOLLO_CLUSTER=\"\"\nENV SV_PORT=20781\nENV JARFILE=XX\n\nRUN echo 'set -x && env && pwd && /root/server/jdk1.8.0_202/bin/java -javaagent:/root/server/log4x/log4x-agent.jar -Dfile.encoding=UTF-8 -Dapollo.meta=${APOLLO_META} -Dapollo.cluster=${APOLLO_CLUSTER} -Djava.security.egd=file:/dev/urandom -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/root/server/dump -XX:+StartAttachListener -Xms${JVM_Xms} -Xmx${JVM_Xmx} -Djava.io.tmpdir=temp -Dlogging.file.path=logs -Dspring.profiles.active=prod -jar ${JARFILE}' >/root/server/bin/start.sh\nRUN echo 'sleep 900' >>/root/server/bin/start.sh\n\nENTRYPOINT [\"\"]\nCMD bash /root/server/bin/start.sh",
+  "chunks": [
+    {
+      "text": "RUN mkdir -p /root/server/logs\nRUN mkdir -p /root/server/temp\nRUN mkdir -p /root/server/dump\nRUN mkdir -p /opt/data && chmod 755 /opt/data\nRUN rm -f /etc/localtime \\\n&& ln -sv /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \\\n&& echo \"Asia/Shanghai\" > /etc/timezone\nWORKDIR /root/server\nENV JVM_Xms=512m\nENV JVM_Xmx=2048m\nENV APOLLO_META=http://48.250.204.132:8030/\nENV APOLLO_CLUSTER=\"\"\nENV SV_PORT=20781\nENV JARFILE=XX\n\nRUN echo 'set -x && env && pwd && /root/server/jdk1.8.0_202/bin/java -javaagent:/root/server/log4x/log4x-agent.jar -Dfile.encoding=UTF-8 -Dapollo.meta=${APOLLO_META} -Dapollo.cluster=${APOLLO_CLUSTER} -Djava.security.egd=file:/dev/urandom -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/root/server/dump -XX:+StartAttachListener -Xms${JVM_Xms} -Xmx${JVM_Xmx} -Djava.io.tmpdir=temp -Dlogging.file.path=logs -Dspring.profiles.active=prod -jar ${JARFILE}' >/root/server/bin/start.sh\nRUN echo 'sleep 900' >>/root/server/bin/start.sh",
+      "metadata": {
+        "chunk_type": "paragraphs"
+      }
+    },
+    {
+      "text": "ENTRYPOINT [\"\"]\nCMD bash /root/server/bin/start.sh",
+      "metadata": {
+        "chunk_type": "paragraphs"
+      }
+    }
+  ],
+  "metadata": {}
+}

@@ -95,7 +95,7 @@ function TreeNode({ node, level = 0 }: { node: KBTreeNode; level?: number }) {
 }
 
 export function KBTree() {
-  const { knowledgeBases } = useKBStore()
+  const { knowledgeBases, getDocumentCount } = useKBStore()
 
   return (
     <div className="h-full flex flex-col">
@@ -116,7 +116,7 @@ export function KBTree() {
       <div className="px-4 py-3 border-t border-slate-200 bg-slate-50">
         <div className="flex items-center gap-2 text-xs text-slate-500">
           <FileText className="w-3.5 h-3.5" />
-          <span>共 {knowledgeBases.reduce((acc, kb) => acc + (kb.documentCount || 0), 0)} 个文档</span>
+          <span>共 {knowledgeBases.reduce((acc, kb) => acc + getDocumentCount(kb.id), 0)} 个文档</span>
         </div>
       </div>
     </div>

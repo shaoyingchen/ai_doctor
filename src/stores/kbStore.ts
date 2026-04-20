@@ -57,6 +57,7 @@ interface KBState {
   selectKB: (id: string | null) => void
   toggleNode: (id: string) => void
   setFiles: (files: Document[]) => void
+  updateKnowledgeBaseCounts: () => void
   selectFiles: (ids: string[]) => void
   toggleFileSelection: (id: string) => void
   selectAllFiles: () => void
@@ -68,6 +69,9 @@ interface KBState {
   // Batch operations
   deleteSelectedFiles: () => void
   parseSelectedFiles: () => void
+
+  // Computed
+  getDocumentCount: (kbId: string) => number
 }
 
 // Mock data for initial state
@@ -77,10 +81,10 @@ const mockKnowledgeBases: KBTreeNode[] = [
     name: '个人库',
     type: 'kb',
     knowledgeBaseType: 'personal',
-    documentCount: 12,
+    documentCount: 0, // Will be calculated dynamically
     children: [
-      { id: 'folder-1', name: '工作文档', type: 'folder', parentId: 'kb-1', documentCount: 5 },
-      { id: 'folder-2', name: '学习资料', type: 'folder', parentId: 'kb-1', documentCount: 7 },
+      { id: 'folder-1', name: '工作文档', type: 'folder', parentId: 'kb-1', documentCount: 0 },
+      { id: 'folder-2', name: '学习资料', type: 'folder', parentId: 'kb-1', documentCount: 0 },
     ],
   },
   {
@@ -88,11 +92,11 @@ const mockKnowledgeBases: KBTreeNode[] = [
     name: '单位库',
     type: 'kb',
     knowledgeBaseType: 'department',
-    documentCount: 45,
+    documentCount: 0,
     children: [
-      { id: 'folder-3', name: '项目文档', type: 'folder', parentId: 'kb-2', documentCount: 20 },
-      { id: 'folder-4', name: '会议纪要', type: 'folder', parentId: 'kb-2', documentCount: 15 },
-      { id: 'folder-5', name: '技术文档', type: 'folder', parentId: 'kb-2', documentCount: 10 },
+      { id: 'folder-3', name: '项目文档', type: 'folder', parentId: 'kb-2', documentCount: 0 },
+      { id: 'folder-4', name: '会议纪要', type: 'folder', parentId: 'kb-2', documentCount: 0 },
+      { id: 'folder-5', name: '技术文档', type: 'folder', parentId: 'kb-2', documentCount: 0 },
     ],
   },
   {
@@ -100,11 +104,11 @@ const mockKnowledgeBases: KBTreeNode[] = [
     name: '公共库',
     type: 'kb',
     knowledgeBaseType: 'public',
-    documentCount: 128,
+    documentCount: 0,
     children: [
-      { id: 'folder-6', name: '政策法规', type: 'folder', parentId: 'kb-3', documentCount: 30 },
-      { id: 'folder-7', name: '标准规范', type: 'folder', parentId: 'kb-3', documentCount: 50 },
-      { id: 'folder-8', name: '行业报告', type: 'folder', parentId: 'kb-3', documentCount: 48 },
+      { id: 'folder-6', name: '政策法规', type: 'folder', parentId: 'kb-3', documentCount: 0 },
+      { id: 'folder-7', name: '标准规范', type: 'folder', parentId: 'kb-3', documentCount: 0 },
+      { id: 'folder-8', name: '行业报告', type: 'folder', parentId: 'kb-3', documentCount: 0 },
     ],
   },
 ]
@@ -179,7 +183,7 @@ const mockFiles: Document[] = [
   },
 ]
 
-export const useKBStore = create<KBState>((set) => ({
+export const useKBStore = create<KBState>((set, get) => ({
   // Initial state
   knowledgeBases: mockKnowledgeBases,
   selectedKBId: 'kb-1',
@@ -201,7 +205,37 @@ export const useKBStore = create<KBState>((set) => ({
       : [...state.expandedNodes, id],
   })),
 
-  setFiles: (files) => set({ files }),
+  setFiles: (files) => {
+    set({ files })
+    // Update counts after setting files
+    setTimeout(() => get().updateKnowledgeBaseCounts(), 0)
+  },
+
+  // Update knowledge base document counts based on actual files
+  updateKnowledgeBaseCounts: () => {
+    const state = get()
+    const files = state.files
+    const knowledgeBases = state.knowledgeBases.map((kb) => {
+      // Count files in this KB
+      const kbFileCount = files.filter((f) => f.knowledgeBaseId === kb.id).length
+
+      // Count files in each folder (category)
+      const children = kb.children?.map((folder) => ({
+        ...folder,
+        documentCount: files.filter(
+          (f) => f.knowledgeBaseId === kb.id && f.category === folder.name
+        ).length,
+      }))
+
+      return {
+        ...kb,
+        documentCount: kbFileCount,
+        children,
+      }
+    })
+
+    set({ knowledgeBases })
+  },
 
   selectFiles: (ids) => set({ selectedFileIds: ids }),
 
@@ -238,4 +272,13 @@ export const useKBStore = create<KBState>((set) => ({
         : f
     ),
   })),
+
+  // Computed: Get document count for a knowledge base
+  getDocumentCount: (kbId) => {
+    const state = get()
+    return state.files.filter((f) => f.knowledgeBaseId === kbId).length
+  },
 }))
+
+// Initialize counts on store creation
+useKBStore.getState().updateKnowledgeBaseCounts()

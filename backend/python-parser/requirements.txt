@@ -1,0 +1,23 @@
+# AI Doctor Parser Service - Python Dependencies
+
+# FastAPI framework
+fastapi>=0.103.2
+uvicorn[standard]>=0.22.0
+python-multipart>=0.0.6
+pydantic>=2.0.0
+
+# PDF parsing
+pymupdf>=1.22.5
+
+# DOCX parsing
+python-docx>=1.0.0
+
+# Encoding detection
+chardet>=5.0.0
+
+# OCR (optional, for scanned PDFs)
+# paddleocr>=2.7.0
+# paddlepaddle>=2.5.0
+
+# Install command:
+# pip install -r requirements.txt

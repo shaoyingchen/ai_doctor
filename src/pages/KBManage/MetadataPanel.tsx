@@ -30,7 +30,7 @@ function formatDateTime(dateStr: string): string {
 }
 
 export function MetadataPanel() {
-  const { selectedFile, setSelectedFile } = useKBStore()
+  const { selectedFile, setSelectedFile, setViewMode } = useKBStore()
 
   if (!selectedFile) {
     return (
@@ -43,6 +43,10 @@ export function MetadataPanel() {
 
   const handleClose = () => {
     setSelectedFile(null)
+  }
+
+  const handleViewPipeline = () => {
+    setViewMode('pipeline')
   }
 
   return (
@@ -240,6 +244,10 @@ export function MetadataPanel() {
 
       {/* Footer Actions */}
       <div className="px-4 py-3 border-t border-slate-200 space-y-2">
+        <Button variant="outline" className="w-full" size="sm" onClick={handleViewPipeline}>
+          <Layers className="w-4 h-4 mr-2" />
+          解析流水线
+        </Button>
         <Button variant="outline" className="w-full" size="sm">
           <RefreshCw className="w-4 h-4 mr-2" />
           重新解析

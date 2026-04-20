@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -300,9 +301,21 @@ export default function Pipeline() {
     cancelTask,
     getFilteredTasks,
     calculateProgress,
+    fetchTasks,
   } = usePipelineStore()
 
   const filteredTasks = getFilteredTasks()
+
+  // Poll for task progress every 2 seconds
+  useEffect(() => {
+    // Initial fetch
+    fetchTasks()
+
+    // Poll every 2 seconds
+    const interval = setInterval(fetchTasks, 2000)
+
+    return () => clearInterval(interval)
+  }, [])
 
   // Calculate the current active stage index based on processing tasks
   const activeStageIndex = Math.max(

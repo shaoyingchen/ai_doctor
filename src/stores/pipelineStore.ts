@@ -50,10 +50,11 @@ interface PipelineState {
   vectorModel: 'bge-large' | 'text-embedding' | 'custom'
 
   // Actions
+  fetchTasks: () => Promise<void>
   setTasks: (tasks: ParseTask[]) => void
   updateTask: (id: string, updates: Partial<ParseTask>) => void
   removeTask: (id: string) => void
-  retryTask: (id: string) => void
+  retryTask: (id: string) => Promise<void>
   cancelTask: (id: string) => void
   setStatusFilter: (filter: 'all' | 'pending' | 'processing' | 'completed' | 'failed') => void
   setParseEngine: (engine: 'mineru' | 'pymupdf' | 'paddle-ocr') => void
@@ -65,12 +66,12 @@ interface PipelineState {
   calculateProgress: (task: ParseTask) => ParseStage[]
 }
 
-// Mock data for demo
-const mockTasks: ParseTask[] = [
+// Initial mock data (used only for first load)
+const initialMockTasks: ParseTask[] = [
   {
     id: '1',
     documentId: 'doc1',
-    documentName: '2024数字化转型指南.pdf',
+    documentName: '2024 数字化转型指南.pdf',
     status: 'completed',
     progress: 100,
     currentStage: '入库',
@@ -91,7 +92,7 @@ const mockTasks: ParseTask[] = [
   {
     id: '3',
     documentId: 'doc3',
-    documentName: '技术规范v2.0.pdf',
+    documentName: '技术规范 v2.0.pdf',
     status: 'parsing',
     progress: 30,
     currentStage: '解析',
@@ -101,7 +102,7 @@ const mockTasks: ParseTask[] = [
   {
     id: '4',
     documentId: 'doc4',
-    documentName: '会议纪要-20260402.txt',
+    documentName: '会议纪要 -20260402.txt',
     status: 'pending',
     progress: 0,
     currentStage: '等待处理',
@@ -118,64 +119,114 @@ const mockTasks: ParseTask[] = [
     createdAt: '2026-04-02T09:00:00Z',
     startedAt: '2026-04-02T09:05:00Z',
   },
-  {
-    id: '6',
-    documentId: 'doc6',
-    documentName: '国家标准规范汇编.pdf',
-    status: 'chunking',
-    progress: 55,
-    currentStage: '分块',
-    createdAt: '2026-04-02T11:45:00Z',
-    startedAt: '2026-04-02T11:46:00Z',
-  },
 ]
 
-const mockStatusCounts: StatusCounts = {
+const initialStatusCounts: StatusCounts = {
   pending: 12,
   processing: 5,
   completed: 128,
   failed: 3,
 }
 
-const mockResourceUsage: ResourceUsage = {
+const initialResourceUsage: ResourceUsage = {
   cpu: 65,
   memory: 48,
   queueLength: 8,
 }
 
+const API_BASE_URL = 'http://localhost:8000/api'
+
 export const usePipelineStore = create<PipelineState>((set, get) => ({
-  tasks: mockTasks,
-  statusCounts: mockStatusCounts,
-  currentProcessingDocument: '技术规范v2.0.pdf',
-  resourceUsage: mockResourceUsage,
+  // Initial state
+  tasks: initialMockTasks,
+  statusCounts: initialStatusCounts,
+  currentProcessingDocument: null,
+  resourceUsage: initialResourceUsage,
   statusFilter: 'all',
   parseEngine: 'mineru',
   chunkStrategy: 'smart',
   vectorModel: 'bge-large',
 
+  // Fetch tasks from backend
+  fetchTasks: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/tasks`)
+      if (!response.ok) throw new Error('Failed to fetch tasks')
+
+      const data = await response.json()
+      const fetchedTasks: ParseTask[] = data.tasks || []
+
+      // Calculate status counts from fetched tasks
+      const statusCounts: StatusCounts = {
+        pending: fetchedTasks.filter((t) => t.status === 'pending').length,
+        processing: fetchedTasks.filter((t) =>
+          ['uploading', 'parsing', 'chunking', 'vectorizing'].includes(t.status)
+        ).length,
+        completed: fetchedTasks.filter((t) => t.status === 'completed').length,
+        failed: fetchedTasks.filter((t) => t.status === 'failed').length,
+      }
+
+      // Find currently processing document
+      const processingTask = fetchedTasks.find(
+        (t) => t.status === 'parsing' || t.status === 'chunking' || t.status === 'vectorizing'
+      )
+
+      // Update resource usage (simulated for now)
+      const resourceUsage: ResourceUsage = {
+        cpu: statusCounts.processing * 10 + 20,
+        memory: statusCounts.processing * 8 + 30,
+        queueLength: statusCounts.pending,
+      }
+
+      set({
+        tasks: fetchedTasks,
+        statusCounts,
+        currentProcessingDocument: processingTask?.documentName || null,
+        resourceUsage,
+      })
+    } catch (error) {
+      console.log('[PipelineStore] 使用本地数据 (后端不可用):', error)
+      // Keep existing data if backend is not available
+    }
+  },
+
+  // Actions
   setTasks: (tasks) => set({ tasks }),
 
-  updateTask: (id, updates) => set((state) => ({
-    tasks: state.tasks.map((task) =>
-      task.id === id ? { ...task, ...updates } : task
-    ),
-  })),
+  updateTask: (id, updates) =>
+    set((state) => ({
+      tasks: state.tasks.map((task) =>
+        task.id === id ? { ...task, ...updates } : task
+      ),
+    })),
 
-  removeTask: (id) => set((state) => ({
-    tasks: state.tasks.filter((task) => task.id !== id),
-  })),
+  removeTask: (id) =>
+    set((state) => ({
+      tasks: state.tasks.filter((task) => task.id !== id),
+    })),
 
-  retryTask: (id) => set((state) => ({
-    tasks: state.tasks.map((task) =>
-      task.id === id
-        ? { ...task, status: 'pending', progress: 0, currentStage: '等待处理', error: undefined }
-        : task
-    ),
-  })),
+  retryTask: async (id) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/tasks/${id}/retry`, {
+        method: 'POST',
+      })
+      if (!response.ok) throw new Error('Failed to retry task')
 
-  cancelTask: (id) => set((state) => ({
-    tasks: state.tasks.filter((task) => task.id !== id),
-  })),
+      const data = await response.json()
+      set((state) => ({
+        tasks: state.tasks.map((task) =>
+          task.id === id ? data.task : task
+        ),
+      }))
+    } catch (error) {
+      console.error('[PipelineStore] Retry error:', error)
+    }
+  },
+
+  cancelTask: (id) =>
+    set((state) => ({
+      tasks: state.tasks.filter((task) => task.id !== id),
+    })),
 
   setStatusFilter: (filter) => set({ statusFilter: filter }),
 
@@ -185,12 +236,18 @@ export const usePipelineStore = create<PipelineState>((set, get) => ({
 
   setVectorModel: (model) => set({ vectorModel: model }),
 
+  // Computed
   getFilteredTasks: () => {
     const state = get()
     if (state.statusFilter === 'all') {
       return state.tasks
     }
-    return state.tasks.filter((task) => task.status === state.statusFilter)
+    return state.tasks.filter((task) => {
+      if (state.statusFilter === 'processing') {
+        return ['uploading', 'parsing', 'chunking', 'vectorizing'].includes(task.status)
+      }
+      return task.status === state.statusFilter
+    })
   },
 
   calculateProgress: (task) => {

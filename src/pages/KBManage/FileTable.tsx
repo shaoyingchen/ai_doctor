@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import { cn } from '@/lib/cn'
 import { useKBStore } from '@/stores/kbStore'
 import type { Document } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { FileUpload } from '@/components/ui/FileUpload'
+import { ParseProgress, calculateStages } from '@/components/ui/ParseProgress'
 import {
   FileText,
   File,
@@ -14,6 +16,8 @@ import {
   ChevronDown,
   MoreHorizontal,
   Upload,
+  RefreshCw,
+  ChevronRight,
 } from 'lucide-react'
 
 // Get file type icon
@@ -84,10 +88,128 @@ export function FileTable() {
     deleteSelectedFiles,
     parseSelectedFiles,
     setSelectedFile,
+    setFiles,
+    updateKnowledgeBaseCounts,
   } = useKBStore()
 
   const [sortField, setSortField] = useState<SortField>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>(null)
+  const [showUploadModal, setShowUploadModal] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [expandedTaskIds, setExpandedTaskIds] = useState<Set<string>>(new Set())
+
+  // Task details for progress display
+  const [taskDetails, setTaskDetails] = useState<Map<string, { progress: number; currentStage: string; error?: string }>>(new Map())
+
+  // Poll for task progress every 3 seconds
+  useEffect(() => {
+    const pollProgress = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/tasks')
+        const data = await response.json()
+
+        if (data.tasks) {
+          // Update task details for progress display
+          const details = new Map<string, { progress: number; currentStage: string; error?: string }>()
+          data.tasks.forEach((task: any) => {
+            details.set(task.documentId, {
+              progress: task.progress,
+              currentStage: task.currentStage,
+              error: task.error,
+            })
+          })
+          setTaskDetails(details)
+
+          // Update files with latest task status
+          setFiles(data.tasks.map((task: any) => ({
+            id: task.documentId,
+            name: task.documentName,
+            type: task.documentName.split('.').pop()?.toLowerCase() || 'unknown' as any,
+            size: 0,
+            knowledgeBaseId: 'kb-1',
+            status: mapTaskStatusToDocumentStatus(task.status),
+            version: 'v1.0',
+            tags: [],
+            category: '上传文档',
+            createdAt: task.createdAt,
+            updatedAt: task.completedAt || task.createdAt,
+            parsedAt: task.status === 'completed' ? task.completedAt : undefined,
+          })))
+          // Update knowledge base counts
+          updateKnowledgeBaseCounts()
+        }
+      } catch (error) {
+        console.log('Polling error, using mock data')
+      }
+    }
+
+    const interval = setInterval(pollProgress, 3000)
+    return () => clearInterval(interval)
+  }, [setFiles, updateKnowledgeBaseCounts])
+
+  const mapTaskStatusToDocumentStatus = (taskStatus: string): Document['status'] => {
+    switch (taskStatus) {
+      case 'pending':
+        return 'pending'
+      case 'uploading':
+      case 'parsing':
+      case 'chunking':
+      case 'vectorizing':
+      case 'store':
+        return 'parsing'
+      case 'completed':
+        return 'parsed'
+      case 'failed':
+        return 'failed'
+      default:
+        return 'pending'
+    }
+  }
+
+  // Refresh files from backend
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    try {
+      const response = await fetch('http://localhost:8000/api/documents')
+      const data = await response.json()
+
+      if (data.documents) {
+        setFiles(data.documents.map((doc: any) => ({
+          id: doc.id,
+          name: doc.name,
+          type: doc.type,
+          size: doc.size,
+          knowledgeBaseId: 'kb-1',
+          status: 'parsed' as const,
+          version: 'v1.0',
+          tags: [],
+          category: '上传文档',
+          createdAt: doc.createdAt,
+          updatedAt: doc.createdAt,
+          parsedAt: doc.createdAt,
+        })))
+        // Update knowledge base counts after loading files
+        updateKnowledgeBaseCounts()
+      }
+    } catch (error) {
+      console.log('Refresh error, using mock data')
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
+
+  // Toggle task detail expansion
+  const toggleTaskExpand = (fileId: string) => {
+    setExpandedTaskIds((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(fileId)) {
+        newSet.delete(fileId)
+      } else {
+        newSet.add(fileId)
+      }
+      return newSet
+    })
+  }
 
   // Filter files by selected KB and search query
   const filteredFiles = files.filter((file) => {
@@ -194,9 +316,15 @@ export function FileTable() {
         </div>
 
         {/* Upload button */}
-        <Button variant="outline" size="sm">
+        <Button variant="default" size="sm" onClick={() => setShowUploadModal(true)}>
           <Upload className="w-4 h-4 mr-1" />
           上传文件
+        </Button>
+
+        {/* Refresh button */}
+        <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
+          <RefreshCw className={cn("w-4 h-4 mr-1", isRefreshing && "animate-spin")} />
+          刷新
         </Button>
 
         {/* Batch actions */}
@@ -222,6 +350,9 @@ export function FileTable() {
         <table className="w-full">
           <thead className="bg-slate-50 sticky top-0">
             <tr>
+              {/* Expand toggle */}
+              <th className="w-10 px-3 py-2 text-left"></th>
+
               {/* Checkbox column */}
               <th className="w-10 px-3 py-2 text-left">
                 <input
@@ -286,49 +417,91 @@ export function FileTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {sortedFiles.map((file) => (
-              <tr
-                key={file.id}
-                onClick={(e) => handleRowClick(file, e)}
-                className={cn(
-                  'hover:bg-slate-50 cursor-pointer transition-colors',
-                  selectedFileIds.includes(file.id) && 'bg-green-50'
-                )}
-              >
-                <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
-                  <input
-                    type="checkbox"
-                    checked={selectedFileIds.includes(file.id)}
-                    onChange={() => toggleFileSelection(file.id)}
-                    className="rounded border-slate-300 text-green-500 focus:ring-green-500"
-                  />
-                </td>
-                <td className="px-3 py-2">
-                  <div className="flex items-center gap-2">
-                    {getFileIcon(file.type)}
-                    <span className="text-sm text-slate-700 truncate max-w-xs">{file.name}</span>
-                  </div>
-                </td>
-                <td className="px-3 py-2">{getStatusBadge(file.status)}</td>
-                <td className="px-3 py-2">
-                  <span className="text-sm text-slate-600">{file.version}</span>
-                </td>
-                <td className="px-3 py-2">
-                  <span className="text-sm text-slate-500">{formatSize(file.size)}</span>
-                </td>
-                <td className="px-3 py-2">
-                  <span className="text-sm text-slate-500">{formatDate(file.updatedAt)}</span>
-                </td>
-                <td className="px-3 py-2">
-                  <button
-                    onClick={(e) => e.stopPropagation()}
-                    className="p-1 hover:bg-slate-100 rounded"
+            {sortedFiles.map((file) => {
+              const taskDetail = taskDetails.get(file.id)
+              const isExpanded = expandedTaskIds.has(file.id)
+              const isParsing = file.status === 'parsing' && taskDetail
+
+              return (
+                <Fragment key={file.id}>
+                  <tr
+                    onClick={(e) => handleRowClick(file, e)}
+                    className={cn(
+                      'hover:bg-slate-50 cursor-pointer transition-colors',
+                      selectedFileIds.includes(file.id) && 'bg-green-50'
+                    )}
                   >
-                    <MoreHorizontal className="w-4 h-4 text-slate-400" />
-                  </button>
-                </td>
-              </tr>
-            ))}
+                    <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                      {isParsing && (
+                        <button
+                          onClick={() => toggleTaskExpand(file.id)}
+                          className="p-1 hover:bg-slate-100 rounded"
+                        >
+                          <ChevronRight
+                            className={cn(
+                              'w-4 h-4 text-slate-400 transition-transform',
+                              isExpanded && 'rotate-90'
+                            )}
+                          />
+                        </button>
+                      )}
+                    </td>
+                    <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={selectedFileIds.includes(file.id)}
+                        onChange={() => toggleFileSelection(file.id)}
+                        className="rounded border-slate-300 text-green-500 focus:ring-green-500"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        {getFileIcon(file.type)}
+                        <span className="text-sm text-slate-700 truncate max-w-xs">{file.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2">
+                      {isParsing ? (
+                        <Badge variant="info" className="animate-pulse">解析中</Badge>
+                      ) : (
+                        getStatusBadge(file.status)
+                      )}
+                    </td>
+                    <td className="px-3 py-2">
+                      <span className="text-sm text-slate-600">{file.version}</span>
+                    </td>
+                    <td className="px-3 py-2">
+                      <span className="text-sm text-slate-500">{formatSize(file.size)}</span>
+                    </td>
+                    <td className="px-3 py-2">
+                      <span className="text-sm text-slate-500">{formatDate(file.updatedAt)}</span>
+                    </td>
+                    <td className="px-3 py-2">
+                      <button
+                        onClick={(e) => e.stopPropagation()}
+                        className="p-1 hover:bg-slate-100 rounded"
+                      >
+                        <MoreHorizontal className="w-4 h-4 text-slate-400" />
+                      </button>
+                    </td>
+                  </tr>
+
+                  {/* Expanded task detail row */}
+                  {isExpanded && isParsing && taskDetail && (
+                    <tr className="bg-slate-50">
+                      <td colSpan={8} className="px-3 py-4">
+                        <ParseProgress
+                          stages={calculateStages(taskDetail.progress)}
+                          currentStage={taskDetail.currentStage}
+                          progress={taskDetail.progress}
+                          error={taskDetail.error}
+                        />
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              )
+            })}
           </tbody>
         </table>
 
@@ -354,6 +527,17 @@ export function FileTable() {
           </Button>
         </div>
       </div>
+
+      {/* Upload Modal */}
+      {showUploadModal && (
+        <FileUpload
+          onClose={() => setShowUploadModal(false)}
+          onUploadComplete={() => {
+            setShowUploadModal(false)
+            handleRefresh()
+          }}
+        />
+      )}
     </div>
   )
 }

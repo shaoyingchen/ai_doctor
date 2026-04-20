@@ -27,3 +27,5 @@ dist-ssr
 .agents
 .codex
 AGENTS.md
+.cursor
+.claude

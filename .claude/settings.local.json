@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(python3:*)",
+      "Bash(find . -maxdepth 2 -name *.md -o -name *.mdc -o -name .cursorrules -o -name CLAUDE.md -o -name AGENTS.md)",
+      "Bash(chmod:*)",
+      "Bash(npm install:*)",
+      "Bash(pkill -f \"tsx watch\")"
     ]
   }
 }
