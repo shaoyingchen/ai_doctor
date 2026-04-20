@@ -3,66 +3,33 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useFlywheelStore, type FeedbackType, type FeedbackStatus, type FlywheelStage } from '@/stores/flywheelStore'
 import { cn } from '@/lib/cn'
-
-// Icons
-const FeedbackIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-  </svg>
-)
-
-const EvaluationIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-  </svg>
-)
-
-const CompletionIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-  </svg>
-)
-
-const OptimizationIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-  </svg>
-)
-
-const CycleIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-  </svg>
-)
-
-const ThumbsUpIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
-  </svg>
-)
-
-const ThumbsDownIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
-  </svg>
-)
-
-const EditIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-  </svg>
-)
+import {
+  MessageSquare,
+  BarChart3,
+  BookOpen,
+  Settings,
+  RefreshCw,
+  ThumbsUp,
+  ThumbsDown,
+  Edit3,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Clock,
+  Plus,
+  ChevronRight,
+  AlertTriangle
+} from 'lucide-react'
 
 // Flywheel Flow Diagram Component
 function FlywheelFlowDiagram() {
   const { currentStage, setCurrentStage, isRunning, cycleCount, lastCycleTime, toggleFlywheel, runCycle } = useFlywheelStore()
 
   const stages: { id: FlywheelStage; label: string; icon: React.ReactNode }[] = [
-    { id: 'feedback', label: '用户反馈', icon: <FeedbackIcon /> },
-    { id: 'evaluation', label: '质量评估', icon: <EvaluationIcon /> },
-    { id: 'completion', label: '知识补全', icon: <CompletionIcon /> },
-    { id: 'optimization', label: '规则优化', icon: <OptimizationIcon /> },
+    { id: 'feedback', label: '用户反馈', icon: <MessageSquare className="w-4 h-4" /> },
+    { id: 'evaluation', label: '质量评估', icon: <BarChart3 className="w-4 h-4" /> },
+    { id: 'completion', label: '知识补全', icon: <BookOpen className="w-4 h-4" /> },
+    { id: 'optimization', label: '规则优化', icon: <Settings className="w-4 h-4" /> },
   ]
 
   const formatTime = (date: Date | null) => {
@@ -75,96 +42,84 @@ function FlywheelFlowDiagram() {
   }
 
   return (
-    <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-green-800 flex items-center gap-2">
-            <CycleIcon />
-            知识运营飞轮
-          </CardTitle>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 text-sm text-green-700">
-              <span className="font-medium">循环次数:</span>
-              <Badge variant="outlinePrimary">{cycleCount}</Badge>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-green-700">
-              <span className="font-medium">上次运行:</span>
-              <span>{formatTime(lastCycleTime)}</span>
-            </div>
-            <Button
-              size="sm"
-              variant={isRunning ? 'outline' : 'default'}
-              onClick={toggleFlywheel}
+    <div className="bg-gradient-to-r from-primary-50 to-emerald-50 border border-primary-100 rounded-xl p-4">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
+            <RefreshCw className="w-4 h-4" />
+          </div>
+          <h3 className="text-base font-semibold text-primary-800">知识运营飞轮</h3>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5 text-xs text-primary-700">
+            <span className="text-primary-500">循环次数</span>
+            <Badge variant="outlinePrimary" className="text-xs">{cycleCount}</Badge>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-primary-700">
+            <Clock className="w-3 h-3 text-primary-500" />
+            <span>{formatTime(lastCycleTime)}</span>
+          </div>
+          <Button
+            size="sm"
+            variant={isRunning ? 'outline' : 'default'}
+            onClick={toggleFlywheel}
+            className="text-xs h-7"
+          >
+            {isRunning ? '暂停' : '启动'}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={runCycle}
+            className="text-xs h-7"
+          >
+            手动执行
+          </Button>
+        </div>
+      </div>
+
+      {/* Flow stages */}
+      <div className="flex items-center justify-center gap-1">
+        {stages.map((stage, index) => (
+          <div key={stage.id} className="flex items-center">
+            <button
+              onClick={() => setCurrentStage(stage.id)}
               className={cn(
-                "text-xs",
-                isRunning ? "border-green-500 text-green-600 hover:bg-green-50" : "bg-green-600 hover:bg-green-700"
+                "flex items-center gap-2 px-3 py-2 rounded-lg transition-all cursor-pointer",
+                currentStage === stage.id
+                  ? "bg-primary text-white shadow-sm"
+                  : "bg-white text-primary-700 hover:bg-primary-50 border border-primary-100"
               )}
             >
-              {isRunning ? '暂停' : '启动'}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={runCycle}
-              className="text-xs border-green-500 text-green-600 hover:bg-green-50"
-            >
-              手动执行
-            </Button>
+              <div className={cn(
+                "w-6 h-6 rounded flex items-center justify-center",
+                currentStage === stage.id ? "bg-white/20" : "bg-primary-100"
+              )}>
+                {stage.icon}
+              </div>
+              <span className="text-xs font-medium">{stage.label}</span>
+            </button>
+            {index < stages.length - 1 && (
+              <ChevronRight className="w-4 h-4 text-primary-300 mx-1" />
+            )}
           </div>
+        ))}
+      </div>
+
+      {/* Status indicator */}
+      <div className="flex items-center justify-center mt-3">
+        <div className={cn(
+          "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs",
+          isRunning ? "bg-primary-100 text-primary-700" : "bg-slate-100 text-slate-500"
+        )}>
+          <span className={cn(
+            "w-1.5 h-1.5 rounded-full",
+            isRunning ? "bg-primary animate-pulse" : "bg-slate-400"
+          )} />
+          <span>{isRunning ? '飞轮运行中...' : '飞轮已暂停'}</span>
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-center gap-2 py-4">
-          {stages.map((stage, index) => (
-            <div key={stage.id} className="flex items-center">
-              <button
-                onClick={() => setCurrentStage(stage.id)}
-                className={cn(
-                  "flex flex-col items-center gap-2 px-6 py-4 rounded-xl transition-all cursor-pointer",
-                  currentStage === stage.id
-                    ? "bg-green-500 text-white shadow-lg shadow-green-200 scale-105"
-                    : "bg-white text-green-700 hover:bg-green-100 border border-green-200",
-                  isRunning && currentStage === stage.id && "animate-pulse"
-                )}
-              >
-                <div className={cn(
-                  "p-2 rounded-lg",
-                  currentStage === stage.id ? "bg-white/20" : "bg-green-100"
-                )}>
-                  {stage.icon}
-                </div>
-                <span className="text-sm font-medium">{stage.label}</span>
-              </button>
-              {index < stages.length - 1 && (
-                <div className="mx-2 flex items-center">
-                  <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              )}
-            </div>
-          ))}
-          {/* Cycle arrow back to start */}
-          <div className="ml-2 flex items-center">
-            <svg className="w-6 h-6 text-green-400 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-            </svg>
-          </div>
-        </div>
-        <div className="mt-4 flex items-center justify-center">
-          <div className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-full text-sm",
-            isRunning ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
-          )}>
-            <span className={cn(
-              "w-2 h-2 rounded-full",
-              isRunning ? "bg-green-500 animate-pulse" : "bg-gray-400"
-            )} />
-            <span>{isRunning ? '飞轮运行中...' : '飞轮已暂停'}</span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
 
@@ -175,11 +130,11 @@ function FeedbackCollectionPanel() {
   const getFeedbackIcon = (type: FeedbackType) => {
     switch (type) {
       case 'positive':
-        return <div className="p-1.5 rounded-full bg-green-100"><ThumbsUpIcon /></div>
+        return <div className="p-1 rounded-full bg-primary-100"><ThumbsUp className="w-3 h-3 text-primary" /></div>
       case 'negative':
-        return <div className="p-1.5 rounded-full bg-red-100"><ThumbsDownIcon /></div>
+        return <div className="p-1 rounded-full bg-red-100"><ThumbsDown className="w-3 h-3 text-red-600" /></div>
       case 'correction':
-        return <div className="p-1.5 rounded-full bg-yellow-100"><EditIcon /></div>
+        return <div className="p-1 rounded-full bg-amber-100"><Edit3 className="w-3 h-3 text-amber-600" /></div>
     }
   }
 
@@ -191,7 +146,7 @@ function FeedbackCollectionPanel() {
       rejected: { variant: 'secondary', label: '已驳回' }
     }
     const { variant, label } = variants[status]
-    return <Badge variant={variant}>{label}</Badge>
+    return <Badge variant={variant} className="text-xs">{label}</Badge>
   }
 
   const getTypeLabel = (type: FeedbackType) => {
@@ -214,65 +169,59 @@ function FeedbackCollectionPanel() {
   const pendingItems = feedbackItems.filter(f => f.status === 'pending' || f.status === 'processing')
 
   return (
-    <Card className="h-full">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold text-slate-800 flex items-center justify-between">
+    <Card className="h-full border-slate-200">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-semibold text-slate-800 flex items-center justify-between">
           <span>反馈收集</span>
-          <Badge variant="warning">{feedbackCounts.pending} 待处理</Badge>
+          <Badge variant="warning" className="text-xs">{feedbackCounts.pending} 待处理</Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-green-50 rounded-lg p-3 text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <ThumbsUpIcon />
-            </div>
-            <div className="text-xl font-bold text-green-600">{feedbackCounts.positive}</div>
-            <div className="text-xs text-green-600">好评</div>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-primary-50 rounded-lg p-2.5 text-center">
+            <ThumbsUp className="w-4 h-4 mx-auto text-primary mb-1" />
+            <div className="text-lg font-bold text-primary">{feedbackCounts.positive}</div>
+            <div className="text-xs text-primary">好评</div>
           </div>
-          <div className="bg-red-50 rounded-lg p-3 text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <ThumbsDownIcon />
-            </div>
-            <div className="text-xl font-bold text-red-600">{feedbackCounts.negative}</div>
+          <div className="bg-red-50 rounded-lg p-2.5 text-center">
+            <ThumbsDown className="w-4 h-4 mx-auto text-red-500 mb-1" />
+            <div className="text-lg font-bold text-red-600">{feedbackCounts.negative}</div>
             <div className="text-xs text-red-600">差评</div>
           </div>
-          <div className="bg-yellow-50 rounded-lg p-3 text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <EditIcon />
-            </div>
-            <div className="text-xl font-bold text-yellow-600">{feedbackCounts.correction}</div>
-            <div className="text-xs text-yellow-600">纠错</div>
+          <div className="bg-amber-50 rounded-lg p-2.5 text-center">
+            <Edit3 className="w-4 h-4 mx-auto text-amber-500 mb-1" />
+            <div className="text-lg font-bold text-amber-600">{feedbackCounts.correction}</div>
+            <div className="text-xs text-amber-600">纠错</div>
           </div>
         </div>
 
         {/* Feedback List */}
-        <div className="space-y-2 max-h-[400px] overflow-y-auto">
+        <div className="space-y-2 max-h-[350px] overflow-y-auto">
           {pendingItems.map((item) => (
             <div
               key={item.id}
-              className="border border-slate-200 rounded-lg p-3 hover:border-green-300 transition-colors"
+              className="border border-slate-100 rounded-lg p-3 hover:border-slate-200 transition-colors"
             >
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-2">
                 {getFeedbackIcon(item.type)}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
                     <Badge variant="outline" className="text-xs">{getTypeLabel(item.type)}</Badge>
                     {getStatusBadge(item.status)}
                   </div>
-                  <p className="text-sm text-slate-700 line-clamp-2">{item.content}</p>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-xs text-slate-400">{item.source}</span>
-                    <span className="text-xs text-slate-400">{formatTime(item.timestamp)}</span>
+                  <p className="text-xs text-slate-600 line-clamp-2">{item.content}</p>
+                  <div className="flex items-center justify-between mt-1.5 text-xs text-slate-400">
+                    <span>{item.source}</span>
+                    <span>{formatTime(item.timestamp)}</span>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center justify-end gap-2 mt-2 pt-2 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-1.5 mt-2 pt-2 border-t border-slate-100">
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="text-xs h-7"
+                  className="text-xs h-6 px-2"
                   onClick={() => updateFeedbackStatus(item.id, 'rejected')}
                 >
                   忽略
@@ -280,14 +229,14 @@ function FeedbackCollectionPanel() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="text-xs h-7"
+                  className="text-xs h-6 px-2"
                   onClick={() => updateFeedbackStatus(item.id, 'processing')}
                 >
                   处理
                 </Button>
                 <Button
                   size="sm"
-                  className="text-xs h-7 bg-green-600 hover:bg-green-700"
+                  className="text-xs h-6 px-2"
                   onClick={() => updateFeedbackStatus(item.id, 'resolved', '已处理')}
                 >
                   解决
@@ -297,7 +246,7 @@ function FeedbackCollectionPanel() {
           ))}
           {pendingItems.length === 0 && (
             <div className="text-center py-8 text-slate-400">
-              <p>暂无待处理反馈</p>
+              <p className="text-sm">暂无待处理反馈</p>
             </div>
           )}
         </div>
@@ -311,38 +260,26 @@ function QualityMetricsCard() {
   const { qualityMetrics } = useFlywheelStore()
 
   const metrics = [
-    { key: 'accuracy', label: '准确率', value: qualityMetrics.accuracy, unit: '%', color: 'green' },
-    { key: 'coverage', label: '覆盖率', value: qualityMetrics.coverage, unit: '%', color: 'blue' },
-    { key: 'satisfaction', label: '满意度', value: qualityMetrics.satisfaction, unit: '%', color: 'purple' },
-    { key: 'timeliness', label: '时效性', value: qualityMetrics.timeliness, unit: '%', color: 'yellow' },
+    { key: 'accuracy', label: '准确率', value: qualityMetrics.accuracy, color: 'bg-primary' },
+    { key: 'coverage', label: '覆盖率', value: qualityMetrics.coverage, color: 'bg-blue-500' },
+    { key: 'satisfaction', label: '满意度', value: qualityMetrics.satisfaction, color: 'bg-purple-500' },
+    { key: 'timeliness', label: '时效性', value: qualityMetrics.timeliness, color: 'bg-amber-500' },
   ]
 
   const getTrendIcon = () => {
     if (qualityMetrics.trend === 'up') {
-      return (
-        <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-        </svg>
-      )
+      return <TrendingUp className="w-4 h-4 text-primary" />
     }
     if (qualityMetrics.trend === 'down') {
-      return (
-        <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-        </svg>
-      )
+      return <TrendingDown className="w-4 h-4 text-red-500" />
     }
-    return (
-      <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
-      </svg>
-    )
+    return <Minus className="w-4 h-4 text-slate-400" />
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold text-slate-800 flex items-center justify-between">
+    <Card className="border-slate-200">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-semibold text-slate-800 flex items-center justify-between">
           <span>质量指标</span>
           <div className="flex items-center gap-1">
             {getTrendIcon()}
@@ -351,22 +288,16 @@ function QualityMetricsCard() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           {metrics.map((metric) => (
-            <div key={metric.key} className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-600">{metric.label}</span>
-                <span className="font-semibold text-slate-800">{metric.value}{metric.unit}</span>
+            <div key={metric.key} className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-500">{metric.label}</span>
+                <span className="font-semibold text-slate-700">{metric.value}%</span>
               </div>
-              <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                 <div
-                  className={cn(
-                    "h-full rounded-full transition-all",
-                    metric.color === 'green' && "bg-green-500",
-                    metric.color === 'blue' && "bg-blue-500",
-                    metric.color === 'purple' && "bg-purple-500",
-                    metric.color === 'yellow' && "bg-yellow-500"
-                  )}
+                  className={cn("h-full rounded-full transition-all", metric.color)}
                   style={{ width: `${metric.value}%` }}
                 />
               </div>
@@ -384,32 +315,32 @@ function MetaPromptPanel() {
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('zh-CN', {
-      year: 'numeric',
       month: '2-digit',
       day: '2-digit'
     })
   }
 
   return (
-    <Card className="h-full">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold text-slate-800 flex items-center justify-between">
+    <Card className="border-slate-200">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-semibold text-slate-800 flex items-center justify-between">
           <span>MetaPrompt 编排</span>
-          <Button size="sm" className="text-xs bg-green-600 hover:bg-green-700">
-            + 新版本
+          <Button size="sm" className="text-xs h-7">
+            <Plus className="w-3 h-3 mr-1" />
+            新版本
           </Button>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-2">
         {/* Active Version */}
         {activeMetaPrompt && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-            <div className="flex items-center justify-between mb-2">
-              <Badge variant="success">当前版本</Badge>
-              <span className="text-xs text-green-600">{activeMetaPrompt.version}</span>
+          <div className="bg-primary-50 border border-primary-100 rounded-lg p-2.5">
+            <div className="flex items-center justify-between mb-1">
+              <Badge variant="success" className="text-xs">当前版本</Badge>
+              <span className="text-xs text-primary-600">{activeMetaPrompt.version}</span>
             </div>
-            <p className="text-sm text-green-800 line-clamp-2">{activeMetaPrompt.content}</p>
-            <div className="flex items-center justify-between mt-2 text-xs text-green-600">
+            <p className="text-xs text-primary-800 line-clamp-2">{activeMetaPrompt.content}</p>
+            <div className="flex items-center justify-between mt-1.5 text-xs text-primary-600">
               <span>{activeMetaPrompt.author}</span>
               <span>{formatDate(activeMetaPrompt.createdAt)}</span>
             </div>
@@ -417,30 +348,19 @@ function MetaPromptPanel() {
         )}
 
         {/* Version History */}
-        <div className="space-y-2 max-h-[250px] overflow-y-auto">
+        <div className="space-y-1.5 max-h-[200px] overflow-y-auto">
           <div className="text-xs text-slate-500 font-medium">历史版本</div>
           {metaPrompts.filter(p => !p.isActive).map((prompt) => (
             <div
               key={prompt.id}
-              className="border border-slate-200 rounded-lg p-3 hover:border-green-300 transition-colors cursor-pointer"
+              className="border border-slate-100 rounded-lg p-2 hover:border-slate-200 transition-colors cursor-pointer"
               onClick={() => setActiveMetaPrompt(prompt.id)}
             >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium text-slate-700">{prompt.version}</span>
+              <div className="flex items-center justify-between mb-0.5">
+                <span className="text-xs font-medium text-slate-700">{prompt.version}</span>
                 <span className="text-xs text-slate-400">{formatDate(prompt.createdAt)}</span>
               </div>
               <p className="text-xs text-slate-500 line-clamp-1">{prompt.changeLog}</p>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-xs h-6 mt-2 text-green-600 hover:text-green-700 hover:bg-green-50"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setActiveMetaPrompt(prompt.id)
-                }}
-              >
-                激活此版本
-              </Button>
             </div>
           ))}
         </div>
@@ -455,9 +375,9 @@ function KnowledgeGapsPanel() {
 
   const getPriorityConfig = (priority: 'urgent' | 'medium' | 'low') => {
     const configs = {
-      urgent: { color: 'red', label: '紧急', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700' },
-      medium: { color: 'yellow', label: '中等', bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700' },
-      low: { color: 'blue', label: '一般', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700' }
+      urgent: { label: '紧急', bg: 'bg-red-50', border: 'border-red-100', text: 'text-red-700' },
+      medium: { label: '中等', bg: 'bg-amber-50', border: 'border-amber-100', text: 'text-amber-700' },
+      low: { label: '一般', bg: 'bg-blue-50', border: 'border-blue-100', text: 'text-blue-700' }
     }
     return configs[priority]
   }
@@ -471,44 +391,40 @@ function KnowledgeGapsPanel() {
   }
 
   return (
-    <Card className="h-full">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold text-slate-800 flex items-center justify-between">
+    <Card className="h-full border-slate-200">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-semibold text-slate-800 flex items-center justify-between">
           <span>知识缺口识别</span>
-          <Badge variant="info">{knowledgeGaps.length} 项</Badge>
+          <Badge variant="info" className="text-xs">{knowledgeGaps.length} 项</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3 max-h-[350px] overflow-y-auto">
+        <div className="space-y-2 max-h-[300px] overflow-y-auto">
           {knowledgeGaps.map((gap) => {
             const config = getPriorityConfig(gap.priority)
             return (
               <div
                 key={gap.id}
-                className={cn(
-                  "border rounded-lg p-3",
-                  config.bg,
-                  config.border
-                )}
+                className={cn("border rounded-lg p-3", config.bg, config.border)}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <Badge variant={gap.priority === 'urgent' ? 'destructive' : gap.priority === 'medium' ? 'warning' : 'info'}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <Badge variant={gap.priority === 'urgent' ? 'destructive' : gap.priority === 'medium' ? 'warning' : 'info'} className="text-xs">
                     {config.label}
                   </Badge>
-                  <span className="text-xs text-slate-500">{formatTime(gap.lastOccurrence)}</span>
+                  <span className="text-xs text-slate-400">{formatTime(gap.lastOccurrence)}</span>
                 </div>
                 <h4 className="text-sm font-medium text-slate-800 mb-1">{gap.topic}</h4>
                 <p className="text-xs text-slate-600 mb-2">{gap.suggestedAction}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500">出现次数: {gap.occurrenceCount}</span>
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" variant="ghost" className="text-xs h-6">
+                  <span className="text-xs text-slate-400">出现 {gap.occurrenceCount} 次</span>
+                  <div className="flex items-center gap-1.5">
+                    <Button size="sm" variant="ghost" className="text-xs h-6 px-2 text-primary">
                       添加知识
                     </Button>
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="text-xs h-6 text-slate-400"
+                      className="text-xs h-6 px-2 text-slate-400"
                       onClick={() => removeKnowledgeGap(gap.id)}
                     >
                       忽略
@@ -520,7 +436,8 @@ function KnowledgeGapsPanel() {
           })}
           {knowledgeGaps.length === 0 && (
             <div className="text-center py-8 text-slate-400">
-              <p>暂无知识缺口</p>
+              <AlertTriangle className="w-8 h-8 mx-auto mb-2 stroke-1" />
+              <p className="text-sm">暂无知识缺口</p>
             </div>
           )}
         </div>
@@ -532,14 +449,14 @@ function KnowledgeGapsPanel() {
 // Main Page Component
 export default function Flywheel() {
   return (
-    <div className="h-full flex flex-col p-4 gap-4 bg-slate-50">
+    <div className="h-full flex flex-col p-4 gap-4 bg-white">
       {/* Top: Flywheel Flow Diagram */}
       <FlywheelFlowDiagram />
 
       {/* Bottom: Two columns */}
       <div className="flex-1 flex gap-4 min-h-0">
         {/* Left: Feedback Collection */}
-        <div className="w-[420px] flex-shrink-0">
+        <div className="w-[380px] flex-shrink-0">
           <FeedbackCollectionPanel />
         </div>
 

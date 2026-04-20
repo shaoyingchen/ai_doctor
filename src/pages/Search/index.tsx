@@ -66,23 +66,23 @@ export default function SearchPage() {
   }, [results])
 
   return (
-    <div className="h-full flex flex-col bg-slate-50">
+    <div className="h-full flex flex-col bg-white">
       {/* Header */}
-      <div className="bg-gradient-to-r from-primary-50 to-white border-b border-slate-200">
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          <h1 className="text-2xl font-bold text-slate-800 mb-6">智能搜索</h1>
+      <div className="bg-gradient-to-r from-primary-50 to-white border-b border-slate-100">
+        <div className="max-w-6xl mx-auto px-6 py-6">
+          <h1 className="text-xl font-bold text-slate-800 mb-4">智能搜索</h1>
           <SearchBar />
         </div>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        <div className="max-w-6xl mx-auto px-6 py-6">
+        <div className="max-w-6xl mx-auto px-6 py-4">
           {/* Show filters and results only when there's a query */}
           {query ? (
             <>
               {/* Filter Panel */}
-              <div className="bg-white rounded-lg border border-slate-200 p-4 mb-6">
+              <div className="bg-slate-50 rounded-lg border border-slate-100 p-3 mb-4">
                 <FilterPanel />
               </div>
 

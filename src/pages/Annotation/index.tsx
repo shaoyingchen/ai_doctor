@@ -695,7 +695,7 @@ const ResultPanel: React.FC = () => {
 // Main Annotation Workbench Page
 const AnnotationWorkbench: React.FC = () => {
   return (
-    <div className="h-full flex bg-slate-50">
+    <div className="h-full flex bg-white">
       <TaskQueuePanel />
       <AnnotationEditorPanel />
       <ResultPanel />

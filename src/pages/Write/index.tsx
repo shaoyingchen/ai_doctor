@@ -4,9 +4,9 @@ import { ConfigPanel } from './ConfigPanel'
 
 export default function Write() {
   return (
-    <div className="flex h-full bg-slate-100">
+    <div className="flex h-full bg-white">
       {/* 左侧模板面板 */}
-      <div className="w-72 flex-shrink-0 border-r border-slate-200">
+      <div className="w-72 flex-shrink-0 border-r border-slate-100 bg-slate-50">
         <TemplatePanel />
       </div>
 
@@ -16,7 +16,7 @@ export default function Write() {
       </div>
 
       {/* 右侧配置面板 */}
-      <div className="w-80 flex-shrink-0 border-l border-slate-200">
+      <div className="w-80 flex-shrink-0 border-l border-slate-100 bg-slate-50">
         <ConfigPanel />
       </div>
     </div>

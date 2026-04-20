@@ -543,15 +543,15 @@ export default function Enhance() {
   const { activeTab, setActiveTab } = useEnhanceStore()
 
   return (
-    <div className="flex h-full bg-slate-50">
+    <div className="flex h-full bg-white">
       {/* Left Panel - Task Management */}
-      <div className="w-72 border-r border-slate-200 bg-white p-4 overflow-hidden">
+      <div className="w-72 border-r border-slate-100 bg-slate-50 p-4 overflow-hidden">
         <TaskManagementPanel />
       </div>
 
       {/* Center Panel - Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="bg-white border-b border-slate-200 px-6 py-4">
+        <div className="bg-white border-b border-slate-100 px-6 py-3">
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as EnhanceTab)}>
             <TabsList>
               <TabsTrigger value="qa">QA生成</TabsTrigger>
@@ -562,7 +562,7 @@ export default function Enhance() {
           </Tabs>
         </div>
 
-        <div className="flex-1 overflow-auto p-6">
+        <div className="flex-1 overflow-auto p-4">
           {activeTab === 'qa' && <QAContent />}
           {activeTab === 'generalize' && <GeneralizeContent />}
           {activeTab === 'decompose' && <DecomposeContent />}

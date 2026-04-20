@@ -676,7 +676,7 @@ export default function TemplatePage() {
           </div>
 
           {/* 模板/实例卡片网格 */}
-          <div className="flex-1 overflow-auto p-4 bg-slate-50">
+          <div className="flex-1 overflow-auto p-4 bg-white">
             {activeTab !== 'instantiated' ? (
               filteredTemplates.length > 0 ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
