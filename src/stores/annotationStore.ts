@@ -1,12 +1,10 @@
 import { create } from 'zustand'
 import type { AnnotationTask, AutoAnnotation, ManualAnnotation, NLPAnnotationResult, EntityAnnotation, KeywordAnnotation, CategoryAnnotation } from '@/types'
+import { API_BASE_WITH_PATH } from '@/config/api'
 
 export type AnnotationStatus = 'pending' | 'in_progress' | 'approved' | 'rejected'
 export type AnnotationType = 'category' | 'entity' | 'keyword'
 export type EntityType = 'region' | 'time' | 'number' | 'organization'
-
-// API base URL
-const API_BASE_URL = 'http://localhost:8000'
 
 interface AnnotationStats {
   pending: number
@@ -451,7 +449,7 @@ export const useAnnotationStore = create<AnnotationState>((set, get) => ({
   // Auto annotate document using NLP service
   autoAnnotateDocument: async (content, documentName) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/annotate`, {
+      const response = await fetch(API_BASE_WITH_PATH('/api/annotate'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

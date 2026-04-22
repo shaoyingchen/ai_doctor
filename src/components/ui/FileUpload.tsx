@@ -1,5 +1,6 @@
 import { useCallback, useState, useRef } from 'react'
 import { cn } from '@/lib/cn'
+import { API_BASE_WITH_PATH } from '@/config/api'
 import { Upload, FileText, X, CheckCircle, AlertCircle } from 'lucide-react'
 
 interface UploadFile {
@@ -13,6 +14,10 @@ interface UploadFile {
 interface FileUploadProps {
   onUploadComplete?: (files: Array<{ id: string; name: string; type: string }>) => void
   onClose: () => void
+  targetNode?: {
+    id: string
+    type: 'kb' | 'folder'
+  } | null
 }
 
 const ALLOWED_TYPES: Record<string, string> = {
@@ -26,7 +31,7 @@ const ALLOWED_TYPES: Record<string, string> = {
 const MAX_FILE_SIZE = 100 * 1024 * 1024 // 100MB
 const MAX_FILES = 10
 
-export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
+export function FileUpload({ onUploadComplete, onClose, targetNode }: FileUploadProps) {
   const [files, setFiles] = useState<UploadFile[]>([])
   const [isDragOver, setIsDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -121,6 +126,10 @@ export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
       console.log('[Upload] 添加文件:', f.file.name, '大小:', f.file.size, '类型:', f.file.type)
       formData.append('files', f.file)
     })
+    if (targetNode) {
+      formData.append('targetNodeId', targetNode.id)
+      formData.append('targetNodeType', targetNode.type)
+    }
 
     // 检查 FormData 内容
     for (const [key, value] of formData.entries()) {
@@ -137,8 +146,8 @@ export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
     )
 
     try {
-      console.log('[Upload] 发送请求到 http://localhost:8000/api/upload')
-      const response = await fetch('http://localhost:8000/api/upload', {
+      console.log(`[Upload] 发送请求到 ${API_BASE_WITH_PATH('/api/upload')}`)
+      const response = await fetch(API_BASE_WITH_PATH('/api/upload'), {
         method: 'POST',
         body: formData,
       })

@@ -11,7 +11,7 @@ echo "1. 检查后端服务..."
 response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/health)
 if [ "$response" != "200" ]; then
     echo "错误：后端服务未响应 (HTTP $response)"
-    echo "请先运行：cd backend && npm run dev"
+    echo "请先运行：cd backend && python3 -m uvicorn app:app --host 0.0.0.0 --port 8000 --reload"
     exit 1
 fi
 echo "后端服务运行正常 ✓"

@@ -1,6 +1,7 @@
-import { useState, useEffect, Fragment } from 'react'
+import { useState, useEffect, Fragment, useMemo } from 'react'
 import { cn } from '@/lib/cn'
-import { useKBStore } from '@/stores/kbStore'
+import { useKBStore, type KBTreeNode } from '@/stores/kbStore'
+import { API_BASE_WITH_PATH } from '@/config/api'
 import type { Document } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -75,14 +76,41 @@ function formatDate(dateStr: string): string {
 type SortDirection = 'asc' | 'desc' | null
 type SortField = 'name' | 'size' | 'updatedAt' | 'status' | null
 
+function findNodeById(nodes: KBTreeNode[], id: string | null): KBTreeNode | null {
+  if (!id) return null
+  for (const node of nodes) {
+    if (node.id === id) return node
+    const matched = findNodeById(node.children || [], id)
+    if (matched) return matched
+  }
+  return null
+}
+
+function collectDescendantFolderIds(node: KBTreeNode): string[] {
+  const result: string[] = []
+  const stack = [...(node.children || [])]
+  while (stack.length > 0) {
+    const current = stack.pop()!
+    if (current.type === 'folder') {
+      result.push(current.id)
+    }
+    if (current.children && current.children.length > 0) {
+      stack.push(...current.children)
+    }
+  }
+  return result
+}
+
 export function FileTable() {
   const {
     files,
+    selectedKBId,
+    knowledgeBases,
     selectedFileIds,
     viewMode,
     searchQuery,
     toggleFileSelection,
-    selectAllFiles,
+    selectFiles,
     clearFileSelection,
     setSearchQuery,
     deleteSelectedFiles,
@@ -105,7 +133,7 @@ export function FileTable() {
   useEffect(() => {
     const pollProgress = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/tasks')
+        const response = await fetch(API_BASE_WITH_PATH('/api/tasks'))
         const data = await response.json()
 
         if (data.tasks) {
@@ -125,14 +153,15 @@ export function FileTable() {
             id: task.documentId,
             name: task.documentName,
             type: task.documentName.split('.').pop()?.toLowerCase() || 'unknown' as any,
-            size: 0,
-            knowledgeBaseId: 'kb-1',
+            size: task.size || 0,
+            knowledgeBaseId: task.knowledgeBaseId || 'kb-1',
+            folderId: task.folderId || undefined,
             status: mapTaskStatusToDocumentStatus(task.status),
             version: 'v1.0',
             tags: [],
-            category: '上传文档',
+            category: task.category || '上传文档',
             createdAt: task.createdAt,
-            updatedAt: task.completedAt || task.createdAt,
+            updatedAt: task.completedAt || task.updatedAt || task.createdAt,
             parsedAt: task.status === 'completed' ? task.completedAt : undefined,
           })))
           // Update knowledge base counts
@@ -170,7 +199,7 @@ export function FileTable() {
   const handleRefresh = async () => {
     setIsRefreshing(true)
     try {
-      const response = await fetch('http://localhost:8000/api/documents')
+      const response = await fetch(API_BASE_WITH_PATH('/api/documents'))
       const data = await response.json()
 
       if (data.documents) {
@@ -179,14 +208,15 @@ export function FileTable() {
           name: doc.name,
           type: doc.type,
           size: doc.size,
-          knowledgeBaseId: 'kb-1',
-          status: 'parsed' as const,
+          knowledgeBaseId: doc.knowledgeBaseId || 'kb-1',
+          folderId: doc.folderId || undefined,
+          status: doc.status || 'pending',
           version: 'v1.0',
           tags: [],
-          category: '上传文档',
+          category: doc.category || '上传文档',
           createdAt: doc.createdAt,
-          updatedAt: doc.createdAt,
-          parsedAt: doc.createdAt,
+          updatedAt: doc.updatedAt || doc.createdAt,
+          parsedAt: doc.parsedAt,
         })))
         // Update knowledge base counts after loading files
         updateKnowledgeBaseCounts()
@@ -211,13 +241,35 @@ export function FileTable() {
     })
   }
 
-  // Filter files by selected KB and search query
+  const selectedNode = useMemo(
+    () => findNodeById(knowledgeBases, selectedKBId),
+    [knowledgeBases, selectedKBId]
+  )
+
+  const folderScopeIds = useMemo(() => {
+    if (!selectedNode || selectedNode.type !== 'folder') {
+      return new Set<string>()
+    }
+    const ids = [selectedNode.id, ...collectDescendantFolderIds(selectedNode)]
+    return new Set(ids)
+  }, [selectedNode])
+
+  // Filter files by selected KB/folder and search query
   const filteredFiles = files.filter((file) => {
-    // For demo, show all files. In real app, filter by selectedKBId
     const matchesSearch = searchQuery
       ? file.name.toLowerCase().includes(searchQuery.toLowerCase())
       : true
-    return matchesSearch
+    if (!matchesSearch) return false
+
+    if (!selectedNode) return true
+    if (selectedNode.type === 'kb') {
+      return file.knowledgeBaseId === selectedNode.id
+    }
+
+    if (file.folderId) {
+      return folderScopeIds.has(file.folderId)
+    }
+    return file.category === selectedNode.name
   })
 
   // Sort files
@@ -269,12 +321,17 @@ export function FileTable() {
   // Handle row click
   const handleRowClick = (file: Document, e: React.MouseEvent) => {
     e.stopPropagation()
+    const versions =
+      file.version === 'v1.0' && file.updatedAt === file.createdAt
+        ? [{ version: 'v1.0', updatedAt: file.createdAt }]
+        : [
+            { version: file.version, updatedAt: file.updatedAt },
+            { version: 'v1.0', updatedAt: file.createdAt },
+          ]
+
     setSelectedFile({
       ...file,
-      versions: [
-        { version: file.version, updatedAt: file.updatedAt },
-        { version: 'v1.0', updatedAt: file.createdAt },
-      ],
+      versions,
       parseDetails:
         file.status === 'parsed'
           ? { chunks: 42, vectors: 168 }
@@ -289,7 +346,7 @@ export function FileTable() {
     if (selectedFileIds.length === sortedFiles.length) {
       clearFileSelection()
     } else {
-      selectAllFiles()
+      selectFiles(sortedFiles.map((file) => file.id))
     }
   }
 
@@ -531,6 +588,7 @@ export function FileTable() {
       {/* Upload Modal */}
       {showUploadModal && (
         <FileUpload
+          targetNode={selectedNode ? { id: selectedNode.id, type: selectedNode.type } : null}
           onClose={() => setShowUploadModal(false)}
           onUploadComplete={() => {
             setShowUploadModal(false)

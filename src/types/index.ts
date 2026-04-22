@@ -26,6 +26,7 @@ export interface Document {
   type: 'pdf' | 'doc' | 'docx' | 'txt' | 'md'
   size: number
   knowledgeBaseId: string
+  folderId?: string
   status: 'pending' | 'parsing' | 'parsed' | 'failed'
   version: string
   tags: string[]

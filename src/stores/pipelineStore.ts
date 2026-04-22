@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { ParseTask, ParseStage } from '@/types'
+import { API_BASE_WITH_PATH } from '@/config/api'
 
 // Pipeline stage definition
 export interface PipelineStage {
@@ -134,8 +135,6 @@ const initialResourceUsage: ResourceUsage = {
   queueLength: 8,
 }
 
-const API_BASE_URL = 'http://localhost:8000/api'
-
 export const usePipelineStore = create<PipelineState>((set, get) => ({
   // Initial state
   tasks: initialMockTasks,
@@ -150,7 +149,7 @@ export const usePipelineStore = create<PipelineState>((set, get) => ({
   // Fetch tasks from backend
   fetchTasks: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/tasks`)
+      const response = await fetch(API_BASE_WITH_PATH('/api/tasks'))
       if (!response.ok) throw new Error('Failed to fetch tasks')
 
       const data = await response.json()
@@ -207,7 +206,7 @@ export const usePipelineStore = create<PipelineState>((set, get) => ({
 
   retryTask: async (id) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/tasks/${id}/retry`, {
+      const response = await fetch(API_BASE_WITH_PATH(`/api/tasks/${id}/retry`), {
         method: 'POST',
       })
       if (!response.ok) throw new Error('Failed to retry task')

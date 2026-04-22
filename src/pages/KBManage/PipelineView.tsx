@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { cn } from '@/lib/cn'
 import { Badge } from '@/components/ui/badge'
 import { calculateStages } from '@/components/ui/ParseProgress'
+import { API_BASE_WITH_PATH } from '@/config/api'
 import type { ParseTask } from '@/types'
 import {
   FileText,
@@ -133,7 +134,7 @@ export function PipelineView({ documentId }: PipelineViewProps) {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/tasks')
+      const response = await fetch(API_BASE_WITH_PATH('/api/tasks'))
       if (!response.ok) throw new Error('Failed to fetch tasks')
       const data = await response.json()
       const foundTask = (data.tasks || []).find((t: ParseTask) => t.documentId === documentId)
@@ -150,7 +151,7 @@ export function PipelineView({ documentId }: PipelineViewProps) {
   const handleRetry = async () => {
     if (!task) return
     try {
-      await fetch(`http://localhost:8000/api/tasks/${task.id}/retry`, {
+      await fetch(API_BASE_WITH_PATH(`/api/tasks/${task.id}/retry`), {
         method: 'POST',
       })
       fetchTask()

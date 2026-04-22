@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { Document, KnowledgeBase } from '@/types'
+import { API_BASE_WITH_PATH } from '@/config/api'
 
 // Tree node type for knowledge base hierarchy
 export interface KBTreeNode {
@@ -35,6 +36,16 @@ export interface SelectedFile extends Document {
   }
 }
 
+const findNodeById = (nodes: KBTreeNode[], id: string): KBTreeNode | null => {
+  for (const node of nodes) {
+    if (node.id === id) return node
+    const children = node.children || []
+    const hit = findNodeById(children, id)
+    if (hit) return hit
+  }
+  return null
+}
+
 interface KBState {
   // Knowledge base tree
   knowledgeBases: KBTreeNode[]
@@ -54,6 +65,14 @@ interface KBState {
 
   // Actions
   setKnowledgeBases: (kbs: KBTreeNode[]) => void
+  loadKnowledgeBases: () => Promise<void>
+  addKBNode: (payload: {
+    name: string
+    nodeType: 'kb' | 'folder'
+    parentId?: string
+    knowledgeBaseType?: KnowledgeBase['type']
+  }) => Promise<void>
+  deleteKBNode: (id: string) => Promise<void>
   selectKB: (id: string | null) => void
   toggleNode: (id: string) => void
   setFiles: (files: Document[]) => void
@@ -197,6 +216,86 @@ export const useKBStore = create<KBState>((set, get) => ({
   // Actions
   setKnowledgeBases: (kbs) => set({ knowledgeBases: kbs }),
 
+  loadKnowledgeBases: async () => {
+    try {
+      const response = await fetch(API_BASE_WITH_PATH('/api/kb/tree'))
+      if (!response.ok) return
+      const data = await response.json()
+      if (!Array.isArray(data.knowledgeBases)) return
+
+      const nextKnowledgeBases = data.knowledgeBases as KBTreeNode[]
+      const state = get()
+      const expandedFromData = nextKnowledgeBases.map((kb) => kb.id)
+      const mergedExpanded = Array.from(new Set([...state.expandedNodes, ...expandedFromData]))
+
+      set({
+        knowledgeBases: nextKnowledgeBases,
+        expandedNodes: mergedExpanded,
+        selectedKBId: state.selectedKBId && nextKnowledgeBases.some((n) => n.id === state.selectedKBId)
+          ? state.selectedKBId
+          : nextKnowledgeBases[0]?.id || null,
+      })
+      get().updateKnowledgeBaseCounts()
+    } catch (error) {
+      console.log('Load KB tree failed, fallback to local mock state')
+    }
+  },
+
+  addKBNode: async ({ name, nodeType, parentId, knowledgeBaseType }) => {
+    const trimmedName = name.trim()
+    if (!trimmedName) return
+
+    const response = await fetch(API_BASE_WITH_PATH('/api/kb/nodes'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: trimmedName,
+        nodeType,
+        parentId,
+        knowledgeBaseType,
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error('创建失败')
+    }
+
+    const data = await response.json()
+    const nextKnowledgeBases = data.knowledgeBases as KBTreeNode[]
+    const state = get()
+    const nextExpanded = nodeType === 'folder' && parentId
+      ? Array.from(new Set([...state.expandedNodes, parentId]))
+      : state.expandedNodes
+
+    set({
+      knowledgeBases: nextKnowledgeBases,
+      expandedNodes: nextExpanded,
+    })
+    get().updateKnowledgeBaseCounts()
+  },
+
+  deleteKBNode: async (id) => {
+    const response = await fetch(API_BASE_WITH_PATH(`/api/kb/nodes/${id}`), {
+      method: 'DELETE',
+    })
+    if (!response.ok) {
+      throw new Error('删除失败')
+    }
+    const data = await response.json()
+    const nextKnowledgeBases = data.knowledgeBases as KBTreeNode[]
+    const state = get()
+    const stillExists = (nodeId: string | null) => {
+      if (!nodeId) return false
+      return findNodeById(nextKnowledgeBases, nodeId) !== null
+    }
+    set({
+      knowledgeBases: nextKnowledgeBases,
+      selectedKBId: stillExists(state.selectedKBId) ? state.selectedKBId : nextKnowledgeBases[0]?.id || null,
+      expandedNodes: state.expandedNodes.filter((nodeId) => stillExists(nodeId)),
+    })
+    get().updateKnowledgeBaseCounts()
+  },
+
   selectKB: (id) => set({ selectedKBId: id, selectedFileIds: [], selectedFile: null }),
 
   toggleNode: (id) => set((state) => ({
@@ -215,17 +314,28 @@ export const useKBStore = create<KBState>((set, get) => ({
   updateKnowledgeBaseCounts: () => {
     const state = get()
     const files = state.files
+    const updateFolderCounts = (nodes: KBTreeNode[], kbId: string): KBTreeNode[] =>
+      nodes.map((node) => {
+        const children = updateFolderCounts(node.children || [], kbId)
+        const nodeCount = node.type === 'folder'
+          ? files.filter((f) =>
+              f.knowledgeBaseId === kbId &&
+              (f.folderId === node.id || (!f.folderId && f.category === node.name))
+            ).length
+          : node.documentCount
+        return {
+          ...node,
+          documentCount: nodeCount,
+          children,
+        }
+      })
+
     const knowledgeBases = state.knowledgeBases.map((kb) => {
       // Count files in this KB
       const kbFileCount = files.filter((f) => f.knowledgeBaseId === kb.id).length
 
-      // Count files in each folder (category)
-      const children = kb.children?.map((folder) => ({
-        ...folder,
-        documentCount: files.filter(
-          (f) => f.knowledgeBaseId === kb.id && f.category === folder.name
-        ).length,
-      }))
+      // Count files in all descendant folders by name-category convention
+      const children = updateFolderCounts(kb.children || [], kb.id)
 
       return {
         ...kb,

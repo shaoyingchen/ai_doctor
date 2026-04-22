@@ -26,7 +26,7 @@ except ImportError:
     print("安装：pip install pymupdf")
 
 try:
-    from python_docx import Document as DocxDocument
+    from docx import Document as DocxDocument
     HAS_DOCX = True
 except ImportError:
     HAS_DOCX = False
