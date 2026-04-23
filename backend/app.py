@@ -400,6 +400,8 @@ def build_rag_state_item(doc_id: str, slot: dict[str, Any]) -> dict[str, Any]:
         "parseChunks": len(parse_chunks),
         "vectorCount": len(embeddings),
         "qaCount": len(enhance_payload.get("qa_pairs", [])) if isinstance(enhance_payload.get("qa_pairs"), list) else 0,
+        "targetNodeId": slot.get("targetNodeId"),
+        "targetNodeType": slot.get("targetNodeType"),
     }
 
 
@@ -1236,6 +1238,8 @@ async def rag_end_to_end_file(
     file: UploadFile = File(...),
     docId: str | None = Form(default=None),
     parserPreferences: str | None = Form(default=None),
+    knowledgeBaseId: str | None = Form(default=None),
+    nodeType: str | None = Form(default=None),
 ) -> dict[str, Any]:
     ensure_rag_pipeline_service()
     filename, save_path = await save_rag_upload(file)
@@ -1254,6 +1258,9 @@ async def rag_end_to_end_file(
     slot["status"] = "parsing"
     slot["progress"] = 10
     slot["currentStage"] = "Queued"
+    # 存储上传目标节点信息（knowledgeBaseId 可能是知识库 ID 或文件夹 ID，取决于 nodeType）
+    slot["targetNodeId"] = knowledgeBaseId
+    slot["targetNodeType"] = nodeType
     slot["updatedAt"] = now_iso()
     task = upsert_rag_document_and_task(
         doc_id=rag_doc_id,

@@ -82,10 +82,10 @@ function mapRagItemToTask(item: RagStateItem): ParseTask {
   return {
     id: item.docId,
     documentId: item.docId,
-    documentName: item.filename || 'unknown',
+    documentName: item.filename || '未知',
     status,
     progress: item.progress ?? 0,
-    currentStage: item.currentStage || 'Pending',
+    currentStage: item.currentStage || '待处理',
     error: item.error || undefined,
     createdAt: now,
     startedAt: status === 'parsing' ? now : undefined,

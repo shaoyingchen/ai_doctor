@@ -194,7 +194,7 @@ export function MetadataPanel() {
             <CardHeader className="py-3 px-3">
               <CardTitle className="text-sm flex items-center gap-2">
                 <Layers className="w-4 h-4 text-slate-400" />
-                RAG Pipeline
+                RAG 流水线
               </CardTitle>
             </CardHeader>
             <CardContent className="py-2 px-3 space-y-3">
@@ -216,12 +216,12 @@ export function MetadataPanel() {
               )}
               {ragResult && (
                 <div className="grid grid-cols-2 gap-2 text-xs text-slate-500 border-t border-slate-100 pt-2">
-                  <div>Parse Score: {ragResult.parse?.parse_quality_score ?? '--'}</div>
-                  <div>Enhance Score: {ragResult.enhance?.enhance_quality_score ?? '--'}</div>
-                  <div>Parser Engine: {ragResult.parse?.parser_engine ?? '--'}</div>
-                  <div>Doc Strategy: {ragResult.parse?.doc_strategy ?? '--'}</div>
-                  <div>Entities: {ragResult.enhance?.entities?.length ?? 0}</div>
-                  <div>QA Pairs: {ragResult.enhance?.qa_pairs?.length ?? 0}</div>
+                  <div>解析分数：{ragResult.parse?.parse_quality_score ?? '--'}</div>
+                  <div>增强分数：{ragResult.enhance?.enhance_quality_score ?? '--'}</div>
+                  <div>解析引擎：{ragResult.parse?.parser_engine ?? '--'}</div>
+                  <div>文档策略：{ragResult.parse?.doc_strategy ?? '--'}</div>
+                  <div>实体数：{ragResult.enhance?.entities?.length ?? 0}</div>
+                  <div>QA 对数：{ragResult.enhance?.qa_pairs?.length ?? 0}</div>
                 </div>
               )}
             </CardContent>

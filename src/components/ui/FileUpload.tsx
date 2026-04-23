@@ -36,7 +36,7 @@ const ALLOWED_TYPES: Record<string, string> = {
 const MAX_FILE_SIZE = 100 * 1024 * 1024
 const MAX_FILES = 10
 
-export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
+export function FileUpload({ onUploadComplete, onClose, targetNode }: FileUploadProps) {
   const [files, setFiles] = useState<UploadFile[]>([])
   const [isDragOver, setIsDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -44,10 +44,10 @@ export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
   const validateFile = (file: File): string | null => {
     const ext = `.${file.name.split('.').pop()?.toLowerCase()}`
     if (!ALLOWED_TYPES[ext]) {
-      return `Unsupported file extension: ${ext}`
+      return `不支持的文件格式：${ext}`
     }
     if (file.size > MAX_FILE_SIZE) {
-      return `File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB (max 100MB)`
+      return `文件过大：${(file.size / 1024 / 1024).toFixed(1)}MB（最大 100MB）`
     }
     return null
   }
@@ -74,7 +74,7 @@ export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
       alert(errors.join('\n'))
     }
     if (validFiles.length + files.length > MAX_FILES) {
-      alert(`At most ${MAX_FILES} files can be uploaded at once.`)
+      alert(`最多只能上传 ${MAX_FILES} 个文件。`)
       return
     }
     setFiles((prev) => [...prev, ...validFiles])
@@ -118,13 +118,19 @@ export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
         const formData = new FormData()
         formData.append('file', pending.file)
 
+        // 添加目标节点信息
+        if (targetNode) {
+          formData.append('knowledgeBaseId', targetNode.id)
+          formData.append('nodeType', targetNode.type)
+        }
+
         const response = await fetch(API_BASE_WITH_PATH('/api/rag/end-to-end-file'), {
           method: 'POST',
           body: formData,
         })
         const result = await response.json()
         if (!response.ok) {
-          throw new Error(result.detail || result.error || `${pending.file.name} upload failed`)
+          throw new Error(result.detail || result.error || `${pending.file.name} 上传失败`)
         }
 
         setFiles((prev) => prev.map((f) => (f.id === pending.id ? { ...f, status: 'uploaded', progress: 100 } : f)))
@@ -133,7 +139,7 @@ export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
         uploadedDocs.push({
           id: result.docId,
           name: resultFilename,
-          type: resultFilename.split('.').pop()?.toLowerCase() || 'unknown',
+          type: resultFilename.split('.').pop()?.toLowerCase() || '未知',
         })
       }
 
@@ -145,12 +151,12 @@ export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
       setFiles((prev) =>
         prev.map((f) =>
           pendingFiles.find((pf) => pf.id === f.id)
-            ? { ...f, status: 'error', error: error instanceof Error ? error.message : 'Upload failed' }
+            ? { ...f, status: 'error', error: error instanceof Error ? error.message : '上传失败' }
             : f
         )
       )
     }
-  }, [files, onClose, onUploadComplete])
+  }, [files, onClose, onUploadComplete, targetNode])
 
   const getFileIcon = (type: string) => {
     switch (type) {
@@ -178,8 +184,8 @@ export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4">
         <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-slate-800">Upload Files</h2>
-            <p className="text-sm text-slate-500 mt-0.5">RAG pipeline mode: PDF/DOCX/PPTX/XLSX/CSV/MD/TXT, max 100MB</p>
+            <h2 className="text-lg font-semibold text-slate-800">上传文件</h2>
+            <p className="text-sm text-slate-500 mt-0.5">RAG 流水线模式：支持 PDF/DOCX/PPTX/XLSX/CSV/MD/TXT，最大 100MB</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
             <X className="w-5 h-5 text-slate-400" />
@@ -197,9 +203,9 @@ export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
             )}
           >
             <Upload className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-            <p className="text-slate-600 mb-2">Drop files here, or</p>
+            <p className="text-slate-600 mb-2">拖拽文件到此处，或</p>
             <button onClick={() => fileInputRef.current?.click()} className="text-green-600 hover:text-green-700 font-medium">
-              choose files
+              选择文件
             </button>
             <input
               ref={fileInputRef}
@@ -249,7 +255,7 @@ export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
 
         <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3">
           <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg">
-            Cancel
+            取消
           </button>
           <button
             onClick={handleUpload}
@@ -261,7 +267,7 @@ export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
                 : 'bg-green-600 text-white hover:bg-green-700'
             )}
           >
-            Upload {files.filter((f) => f.status === 'pending').length} file(s)
+            上传 {files.filter((f) => f.status === 'pending').length} 个文件
           </button>
         </div>
       </div>

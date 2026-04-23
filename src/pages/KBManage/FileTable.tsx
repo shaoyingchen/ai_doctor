@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { cn } from '@/lib/cn'
 import { useKBStore, type KBTreeNode } from '@/stores/kbStore'
 import { API_BASE_WITH_PATH } from '@/config/api'
@@ -30,6 +30,8 @@ interface RagStateItem {
   progress?: number
   currentStage?: string
   error?: string | null
+  targetNodeId?: string
+  targetNodeType?: string
 }
 
 type SortDirection = 'asc' | 'desc' | null
@@ -62,15 +64,15 @@ function getFileIcon(type: Document['type']) {
 function getStatusBadge(status: Document['status']) {
   switch (status) {
     case 'pending':
-      return <Badge variant="secondary">Pending</Badge>
+      return <Badge variant="secondary">待解析</Badge>
     case 'parsing':
-      return <Badge variant="info">Processing</Badge>
+      return <Badge variant="info">解析中</Badge>
     case 'parsed':
-      return <Badge variant="success">Completed</Badge>
+      return <Badge variant="success">已完成</Badge>
     case 'failed':
-      return <Badge variant="destructive">Failed</Badge>
+      return <Badge variant="destructive">失败</Badge>
     default:
-      return <Badge variant="outline">Unknown</Badge>
+      return <Badge variant="outline">未知</Badge>
   }
 }
 
@@ -153,34 +155,86 @@ export function FileTable() {
   const [taskDetails, setTaskDetails] = useState<Map<string, { progress: number; currentStage: string; error?: string }>>(
     new Map()
   )
+  const [uploadTarget, setUploadTarget] = useState<{ nodeId: string; nodeType: 'kb' | 'folder' } | null>(null)
+  const uploadedDocIds = useRef<Set<string>>(new Set())
 
   const applyRagItems = (items: RagStateItem[]) => {
     const details = new Map<string, { progress: number; currentStage: string; error?: string }>()
     items.forEach((item) => {
       details.set(item.docId, {
         progress: item.progress ?? 0,
-        currentStage: item.currentStage || 'Pending',
+        currentStage: item.currentStage || '待处理',
         error: item.error || undefined,
       })
     })
     setTaskDetails(details)
 
+    // 使用当前的 uploadTarget 来确定归属
+    const currentUploadTarget = uploadTarget
+
     setFiles(
-      items.map((item) => ({
-        id: item.docId,
-        name: item.filename || 'unknown',
-        type: (item.filename?.split('.').pop()?.toLowerCase() || 'unknown') as Document['type'],
-        size: 0,
-        knowledgeBaseId: 'kb-1',
-        folderId: undefined,
-        status: mapRagStatusToDocumentStatus(item.status),
-        version: 'v1.0',
-        tags: [],
-        category: 'RAG Upload',
-        createdAt: item.updatedAt || new Date().toISOString(),
-        updatedAt: item.updatedAt || new Date().toISOString(),
-        parsedAt: item.status === 'completed' ? item.updatedAt : undefined,
-      }))
+      items.map((item) => {
+        // 检查是否是刚上传的文件
+        const isRecentlyUploaded = uploadedDocIds.current.has(item.docId)
+
+        // 优先使用上传时的目标节点，其次使用后端返回的归属信息
+        let knowledgeBaseId: string
+        let folderId: string | undefined = undefined
+        let category = 'RAG 上传'
+
+        if (isRecentlyUploaded && currentUploadTarget) {
+          // 使用上传时记录的目标节点
+          if (currentUploadTarget.nodeType === 'folder') {
+            folderId = currentUploadTarget.nodeId
+            // 查找文件夹所属的知识库
+            const folderNode = findNodeById(knowledgeBases, currentUploadTarget.nodeId)
+            if (folderNode && folderNode.parentId) {
+              knowledgeBaseId = folderNode.parentId
+              category = folderNode.name
+            } else {
+              knowledgeBaseId = currentUploadTarget.nodeId
+            }
+          } else {
+            // 直接上传到知识库
+            knowledgeBaseId = currentUploadTarget.nodeId
+          }
+        } else if (item.targetNodeId) {
+          // 后端返回了归属信息
+          if (item.targetNodeType === 'folder') {
+            // 上传到文件夹
+            folderId = item.targetNodeId
+            const folderNode = findNodeById(knowledgeBases, item.targetNodeId)
+            if (folderNode && folderNode.parentId) {
+              knowledgeBaseId = folderNode.parentId
+              category = folderNode.name
+            } else {
+              knowledgeBaseId = selectedKBId || 'kb-1'
+            }
+          } else {
+            // 上传到知识库
+            knowledgeBaseId = item.targetNodeId
+          }
+        } else {
+          // 默认使用当前选中的知识库
+          knowledgeBaseId = selectedKBId || 'kb-1'
+        }
+
+        return {
+          id: item.docId,
+          name: item.filename || '未知',
+          type: (item.filename?.split('.').pop()?.toLowerCase() || 'unknown') as Document['type'],
+          size: 0,
+          knowledgeBaseId,
+          folderId,
+          status: mapRagStatusToDocumentStatus(item.status),
+          version: 'v1.0',
+          tags: [],
+          category,
+          createdAt: item.updatedAt || new Date().toISOString(),
+          updatedAt: item.updatedAt || new Date().toISOString(),
+          parsedAt: item.status === 'completed' ? item.updatedAt : undefined,
+        }
+      })
     )
     updateKnowledgeBaseCounts()
   }
@@ -335,7 +389,7 @@ export function FileTable() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Search files..."
+            placeholder="搜索文件..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-1.5 text-sm border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
@@ -344,26 +398,26 @@ export function FileTable() {
 
         <Button variant="default" size="sm" onClick={() => setShowUploadModal(true)}>
           <Upload className="w-4 h-4 mr-1" />
-          Upload
+          上传
         </Button>
 
         <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
           <RefreshCw className={cn('w-4 h-4 mr-1', isRefreshing && 'animate-spin')} />
-          Refresh
+          刷新
         </Button>
 
         {selectedFileIds.length > 0 && (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-500">Selected {selectedFileIds.length}</span>
+            <span className="text-sm text-slate-500">已选择 {selectedFileIds.length} 个</span>
             {hasPendingFiles && viewMode === 'files' && (
               <Button variant="outline" size="sm" onClick={handleRagParseSelected}>
                 <Play className="w-4 h-4 mr-1" />
-                Parse
+                解析
               </Button>
             )}
             <Button variant="outline" size="sm" onClick={deleteSelectedFiles}>
               <Trash2 className="w-4 h-4 mr-1" />
-              Delete
+              删除
             </Button>
           </div>
         )}
@@ -384,26 +438,26 @@ export function FileTable() {
               </th>
               <th className="px-3 py-2 text-left">
                 <button onClick={() => handleSort('name')} className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700">
-                  Name
+                  名称
                   {renderSortIcon('name')}
                 </button>
               </th>
               <th className="px-3 py-2 text-left">
                 <button onClick={() => handleSort('status')} className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700">
-                  Status
+                  状态
                   {renderSortIcon('status')}
                 </button>
               </th>
-              <th className="px-3 py-2 text-left"><span className="text-xs font-medium text-slate-500">Version</span></th>
+              <th className="px-3 py-2 text-left"><span className="text-xs font-medium text-slate-500">版本</span></th>
               <th className="px-3 py-2 text-left">
                 <button onClick={() => handleSort('size')} className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700">
-                  Size
+                  大小
                   {renderSortIcon('size')}
                 </button>
               </th>
               <th className="px-3 py-2 text-left">
                 <button onClick={() => handleSort('updatedAt')} className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700">
-                  Updated
+                  更新时间
                   {renderSortIcon('updatedAt')}
                 </button>
               </th>
@@ -442,7 +496,7 @@ export function FileTable() {
                         <span className="text-sm text-slate-700 truncate max-w-xs">{file.name}</span>
                       </div>
                     </td>
-                    <td className="px-3 py-2">{isParsing ? <Badge variant="info" className="animate-pulse">Processing</Badge> : getStatusBadge(file.status)}</td>
+                    <td className="px-3 py-2">{isParsing ? <Badge variant="info" className="animate-pulse">解析中</Badge> : getStatusBadge(file.status)}</td>
                     <td className="px-3 py-2"><span className="text-sm text-slate-600">{file.version}</span></td>
                     <td className="px-3 py-2"><span className="text-sm text-slate-500">{formatSize(file.size)}</span></td>
                     <td className="px-3 py-2"><span className="text-sm text-slate-500">{formatDate(file.updatedAt)}</span></td>
@@ -473,26 +527,36 @@ export function FileTable() {
         {sortedFiles.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-slate-400">
             <FileText className="w-12 h-12 mb-2" />
-            <p className="text-sm">No files</p>
+            <p className="text-sm">暂无文件</p>
           </div>
         )}
       </div>
 
       <div className="px-4 py-2 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
-        <span className="text-xs text-slate-500">Total {sortedFiles.length} files</span>
+        <span className="text-xs text-slate-500">共 {sortedFiles.length} 个文件</span>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" disabled>Prev</Button>
-          <span className="text-xs text-slate-500">Page 1</span>
-          <Button variant="ghost" size="sm" disabled>Next</Button>
+          <Button variant="ghost" size="sm" disabled>上一页</Button>
+          <span className="text-xs text-slate-500">第 1 页</span>
+          <Button variant="ghost" size="sm" disabled>下一页</Button>
         </div>
       </div>
 
       {showUploadModal && (
         <FileUpload
           targetNode={selectedNode ? { id: selectedNode.id, type: selectedNode.type } : null}
-          onClose={() => setShowUploadModal(false)}
-          onUploadComplete={() => {
+          onClose={() => {
             setShowUploadModal(false)
+            // 关闭时清空已上传 docId 记录
+            uploadedDocIds.current.clear()
+            setUploadTarget(null)
+          }}
+          onUploadComplete={(uploadedFiles) => {
+            // 保存上传目标，用于后续 RAG 状态轮询时设置正确的归属
+            if (selectedNode) {
+              setUploadTarget({ nodeId: selectedNode.id, nodeType: selectedNode.type })
+            }
+            // 记录已上传的 docId
+            uploadedFiles.forEach((f) => uploadedDocIds.current.add(f.id))
             void handleRefresh()
           }}
         />

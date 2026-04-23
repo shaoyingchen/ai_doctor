@@ -197,7 +197,7 @@ export function PipelineView({ documentId }: PipelineViewProps) {
         <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
           <Layers className="w-8 h-8 text-slate-300" />
         </div>
-        <p className="text-sm font-medium text-slate-500">No file selected</p>
+        <p className="text-sm font-medium text-slate-500">未选择文件</p>
       </div>
     )
   }
@@ -207,7 +207,7 @@ export function PipelineView({ documentId }: PipelineViewProps) {
       <div className="h-full flex items-center justify-center text-slate-400">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-500 rounded-full animate-spin" />
-          <span className="text-sm">Loading...</span>
+          <span className="text-sm">加载中...</span>
         </div>
       </div>
     )
@@ -219,7 +219,7 @@ export function PipelineView({ documentId }: PipelineViewProps) {
         <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
           <AlertCircle className="w-8 h-8 text-slate-300" />
         </div>
-        <p className="text-sm font-medium text-slate-500">RAG state not found</p>
+        <p className="text-sm font-medium text-slate-500">未找到 RAG 状态</p>
       </div>
     )
   }
@@ -248,7 +248,7 @@ export function PipelineView({ documentId }: PipelineViewProps) {
                     : 'info'
                 }
               >
-                {task.status}
+                {task.status === 'completed' ? '已完成' : task.status === 'failed' ? '失败' : task.status === 'pending' ? '待处理' : '解析中'}
               </Badge>
               <span className="text-xs text-slate-500">{task.progress}%</span>
             </div>
@@ -260,20 +260,20 @@ export function PipelineView({ documentId }: PipelineViewProps) {
             <div className="flex items-start gap-2">
               <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs font-medium text-red-700">Error</p>
+                <p className="text-xs font-medium text-red-700">错误</p>
                 <p className="text-xs text-red-600 mt-0.5">{task.error}</p>
               </div>
             </div>
             <button onClick={handleRetry} className="mt-2 text-xs text-red-600 hover:text-red-700 flex items-center gap-1">
               <RefreshCw className="w-3 h-3" />
-              Retry
+              重试
             </button>
           </div>
         )}
       </div>
 
       <div>
-        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Pipeline</h3>
+        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">流水线</h3>
         <div className="space-y-2">
           {stages.map((stage, index) => (
             <StageCard
@@ -289,12 +289,12 @@ export function PipelineView({ documentId }: PipelineViewProps) {
       </div>
 
       <div>
-        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Task Detail</h3>
+        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">任务详情</h3>
         <div className="space-y-2">
-          <InfoRow label="Task ID" value={task.id} icon={Clock} />
-          <InfoRow label="Created At" value={new Date(task.createdAt).toLocaleString('zh-CN')} icon={Clock} />
-          {task.startedAt && <InfoRow label="Started At" value={new Date(task.startedAt).toLocaleString('zh-CN')} icon={Clock} />}
-          {task.completedAt && <InfoRow label="Completed At" value={new Date(task.completedAt).toLocaleString('zh-CN')} icon={CheckCircle2} />}
+          <InfoRow label="任务 ID" value={task.id} icon={Clock} />
+          <InfoRow label="创建时间" value={new Date(task.createdAt).toLocaleString('zh-CN')} icon={Clock} />
+          {task.startedAt && <InfoRow label="开始时间" value={new Date(task.startedAt).toLocaleString('zh-CN')} icon={Clock} />}
+          {task.completedAt && <InfoRow label="完成时间" value={new Date(task.completedAt).toLocaleString('zh-CN')} icon={CheckCircle2} />}
         </div>
       </div>
 
@@ -302,7 +302,7 @@ export function PipelineView({ documentId }: PipelineViewProps) {
         <div className="flex items-center gap-2 text-xs text-slate-500">
           <Cpu className="w-4 h-4" />
           <span>
-            Current Stage: <span className="font-medium text-slate-700">{task.currentStage}</span>
+            当前阶段：<span className="font-medium text-slate-700">{task.currentStage}</span>
           </span>
         </div>
       </div>
