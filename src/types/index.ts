@@ -23,7 +23,7 @@ export interface KnowledgeBase {
 export interface Document {
   id: string
   name: string
-  type: 'pdf' | 'doc' | 'docx' | 'txt' | 'md'
+  type: 'pdf' | 'doc' | 'docx' | 'txt' | 'md' | 'ppt' | 'pptx' | 'xls' | 'xlsx' | 'csv' | 'unknown'
   size: number
   knowledgeBaseId: string
   folderId?: string

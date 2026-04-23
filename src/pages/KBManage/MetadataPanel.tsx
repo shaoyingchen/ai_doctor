@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { cn } from '@/lib/cn'
 import { useKBStore } from '@/stores/kbStore'
 import { API_BASE_WITH_PATH } from '@/config/api'
@@ -7,31 +7,49 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ParseProgress, calculateStages } from '@/components/ui/ParseProgress'
 import {
-  X,
-  Tag,
-  History,
-  FileText,
-  Layers,
-  Database,
   AlertCircle,
   CheckCircle,
-  Clock,
-  RefreshCw,
-  Download,
   ChevronLeft,
+  Clock,
+  Database,
+  Download,
+  FileText,
+  History,
+  Layers,
+  RefreshCw,
+  Tag,
+  X,
 } from 'lucide-react'
 
-interface TaskDetail {
-  id: string
-  documentId: string
-  documentName: string
-  status: string
+interface RagStateItem {
+  docId: string
+  status: 'pending' | 'parsing' | 'completed' | 'failed'
   progress: number
   currentStage: string
-  error?: string
-  createdAt: string
-  startedAt?: string
-  completedAt?: string
+  error?: string | null
+  updatedAt?: string
+  parseChunks?: number
+  vectorCount?: number
+}
+
+interface RagResultPayload {
+  docId: string
+  parse?: {
+    chunks?: Array<{
+      content?: string
+      metadata?: Record<string, unknown>
+    }>
+    parse_quality_score?: number
+    parser_engine?: string
+    doc_strategy?: string
+  }
+  enhance?: {
+    entities?: unknown[]
+    qa_pairs?: unknown[]
+    question_variants?: unknown[]
+    enhance_quality_score?: number
+  }
+  updatedAt?: string
 }
 
 interface ChunkDetail {
@@ -54,53 +72,72 @@ function formatDateTime(dateStr: string): string {
 export function MetadataPanel() {
   const { selectedFile, setSelectedFile } = useKBStore()
   const [showPipelineDetails, setShowPipelineDetails] = useState(false)
-  const [taskDetail, setTaskDetail] = useState<TaskDetail | null>(null)
+  const [ragState, setRagState] = useState<RagStateItem | null>(null)
+  const [ragResult, setRagResult] = useState<RagResultPayload | null>(null)
   const [chunkDetails, setChunkDetails] = useState<ChunkDetail[]>([])
   const [pipelineLoading, setPipelineLoading] = useState(false)
   const [pipelineError, setPipelineError] = useState<string | null>(null)
 
   const selectedFileId = selectedFile?.id ?? null
 
-  const handleClose = () => {
-    setSelectedFile(null)
-  }
-
-  const handleViewPipeline = () => {
-    setShowPipelineDetails(true)
-  }
-
-  const handleBackToDetail = () => {
-    setShowPipelineDetails(false)
-  }
+  const handleClose = () => setSelectedFile(null)
+  const handleViewPipeline = () => setShowPipelineDetails(true)
+  const handleBackToDetail = () => setShowPipelineDetails(false)
 
   const loadPipelineDetails = async () => {
     if (!selectedFileId) return
     setPipelineLoading(true)
     setPipelineError(null)
     try {
-      const [tasksRes, parsedRes] = await Promise.all([
-        fetch(API_BASE_WITH_PATH('/api/tasks')),
-        fetch(API_BASE_WITH_PATH(`/api/documents/${selectedFileId}/parsed`)),
+      const [stateRes, resultRes] = await Promise.all([
+        fetch(API_BASE_WITH_PATH(`/api/rag/state/${selectedFileId}`)),
+        fetch(API_BASE_WITH_PATH(`/api/rag/results/${selectedFileId}`)),
       ])
 
-      if (!tasksRes.ok) {
-        throw new Error('加载解析任务失败')
+      if (!stateRes.ok) {
+        throw new Error('加载 RAG 状态失败')
       }
+      const stateData = await stateRes.json()
+      setRagState((stateData.item || null) as RagStateItem | null)
 
-      const tasksData = await tasksRes.json()
-      const matchedTask = (tasksData.tasks || []).find((task: TaskDetail) => task.documentId === selectedFileId) || null
-      setTaskDetail(matchedTask)
-
-      if (parsedRes.ok) {
-        const parsedData = await parsedRes.json()
-        setChunkDetails(Array.isArray(parsedData.chunks) ? parsedData.chunks : [])
-      } else {
+      if (!resultRes.ok) {
+        setRagResult(null)
         setChunkDetails([])
+        return
       }
+
+      const resultData = (await resultRes.json()) as RagResultPayload
+      setRagResult(resultData)
+      const chunks = resultData.parse?.chunks || []
+      setChunkDetails(
+        chunks.map((chunk, idx) => ({
+          index: idx + 1,
+          text: chunk.content || '',
+          metadata: chunk.metadata || {},
+        }))
+      )
     } catch (error) {
-      setPipelineError(error instanceof Error ? error.message : '加载解析详情失败')
+      setPipelineError(error instanceof Error ? error.message : '加载 RAG 详情失败')
+      setRagState(null)
+      setRagResult(null)
       setChunkDetails([])
-      setTaskDetail(null)
+    } finally {
+      setPipelineLoading(false)
+    }
+  }
+
+  const handleRagReparse = async () => {
+    if (!selectedFileId) return
+    setPipelineLoading(true)
+    setPipelineError(null)
+    try {
+      const rerunRes = await fetch(API_BASE_WITH_PATH(`/api/rag/retry/${selectedFileId}`), {
+        method: 'POST',
+      })
+      if (!rerunRes.ok) throw new Error('RAG 重新解析失败')
+      await loadPipelineDetails()
+    } catch (error) {
+      setPipelineError(error instanceof Error ? error.message : 'RAG 重新解析失败')
     } finally {
       setPipelineLoading(false)
     }
@@ -108,7 +145,8 @@ export function MetadataPanel() {
 
   useEffect(() => {
     setShowPipelineDetails(false)
-    setTaskDetail(null)
+    setRagState(null)
+    setRagResult(null)
     setChunkDetails([])
     setPipelineError(null)
   }, [selectedFileId])
@@ -116,20 +154,18 @@ export function MetadataPanel() {
   useEffect(() => {
     if (!showPipelineDetails || !selectedFileId) return
     void loadPipelineDetails()
-    const interval = setInterval(() => {
-      void loadPipelineDetails()
-    }, 3000)
+    const interval = setInterval(() => void loadPipelineDetails(), 3000)
     return () => clearInterval(interval)
   }, [showPipelineDetails, selectedFileId])
 
   const progressValue = useMemo(() => {
-    if (taskDetail) return taskDetail.progress
+    if (ragState) return ragState.progress
     if (selectedFile?.status === 'parsed') return 100
     if (selectedFile?.status === 'parsing') return 50
     return 0
-  }, [taskDetail, selectedFile?.status])
+  }, [ragState, selectedFile?.status])
 
-  const currentStageText = taskDetail?.currentStage || (selectedFile?.status === 'parsed' ? 'Stored' : 'Pending')
+  const currentStageText = ragState?.currentStage || (selectedFile?.status === 'parsed' ? 'Stored' : 'Pending')
 
   if (!selectedFile) {
     return (
@@ -146,12 +182,9 @@ export function MetadataPanel() {
         <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
           <div className="min-w-0">
             <h3 className="text-sm font-medium text-slate-700 truncate">{selectedFile.name}</h3>
-            <p className="text-xs text-slate-500 mt-0.5">解析流水线与分块详情</p>
+            <p className="text-xs text-slate-500 mt-0.5">RAG 状态流与分块详情</p>
           </div>
-          <button
-            onClick={handleClose}
-            className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600"
-          >
+          <button onClick={handleClose} className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -161,26 +194,34 @@ export function MetadataPanel() {
             <CardHeader className="py-3 px-3">
               <CardTitle className="text-sm flex items-center gap-2">
                 <Layers className="w-4 h-4 text-slate-400" />
-                解析流水线
+                RAG Pipeline
               </CardTitle>
             </CardHeader>
             <CardContent className="py-2 px-3 space-y-3">
-              {pipelineError && (
-                <div className="p-2 bg-red-50 rounded-md text-xs text-red-600">{pipelineError}</div>
-              )}
+              {pipelineError && <div className="p-2 bg-red-50 rounded-md text-xs text-red-600">{pipelineError}</div>}
               {pipelineLoading && <p className="text-xs text-slate-500">加载中...</p>}
               <ParseProgress
                 stages={calculateStages(progressValue)}
                 currentStage={currentStageText}
                 progress={progressValue}
-                error={taskDetail?.error}
+                error={ragState?.error || undefined}
               />
-              {taskDetail && (
+              {ragState && (
                 <div className="grid grid-cols-2 gap-2 text-xs text-slate-500">
-                  <div>任务状态: {taskDetail.status}</div>
-                  <div>任务进度: {taskDetail.progress}%</div>
-                  <div>创建时间: {formatDateTime(taskDetail.createdAt)}</div>
-                  <div>完成时间: {taskDetail.completedAt ? formatDateTime(taskDetail.completedAt) : '--'}</div>
+                  <div>状态: {ragState.status}</div>
+                  <div>进度: {ragState.progress}%</div>
+                  <div>分块数: {ragState.parseChunks ?? 0}</div>
+                  <div>向量数: {ragState.vectorCount ?? 0}</div>
+                </div>
+              )}
+              {ragResult && (
+                <div className="grid grid-cols-2 gap-2 text-xs text-slate-500 border-t border-slate-100 pt-2">
+                  <div>Parse Score: {ragResult.parse?.parse_quality_score ?? '--'}</div>
+                  <div>Enhance Score: {ragResult.enhance?.enhance_quality_score ?? '--'}</div>
+                  <div>Parser Engine: {ragResult.parse?.parser_engine ?? '--'}</div>
+                  <div>Doc Strategy: {ragResult.parse?.doc_strategy ?? '--'}</div>
+                  <div>Entities: {ragResult.enhance?.entities?.length ?? 0}</div>
+                  <div>QA Pairs: {ragResult.enhance?.qa_pairs?.length ?? 0}</div>
                 </div>
               )}
             </CardContent>
@@ -194,9 +235,7 @@ export function MetadataPanel() {
               </CardTitle>
             </CardHeader>
             <CardContent className="py-2 px-3 space-y-2">
-              {chunkDetails.length === 0 && (
-                <p className="text-xs text-slate-500">暂无分块数据，文档可能仍在解析中。</p>
-              )}
+              {chunkDetails.length === 0 && <p className="text-xs text-slate-500">暂无分块数据。</p>}
               {chunkDetails.map((chunk) => (
                 <div key={chunk.index} className="border border-slate-200 rounded-md p-2 space-y-1">
                   <div className="flex items-center justify-between">
@@ -234,10 +273,7 @@ export function MetadataPanel() {
           <h3 className="text-sm font-medium text-slate-700 truncate">{selectedFile.name}</h3>
           <p className="text-xs text-slate-500 mt-0.5">文件详情</p>
         </div>
-        <button
-          onClick={handleClose}
-          className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600"
-        >
+        <button onClick={handleClose} className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600">
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -273,14 +309,12 @@ export function MetadataPanel() {
                 </Badge>
               )}
             </div>
-
             {selectedFile.parsedAt && (
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-500">解析时间</span>
                 <span className="text-sm text-slate-600">{formatDateTime(selectedFile.parsedAt)}</span>
               </div>
             )}
-
             {selectedFile.parseDetails && (
               <>
                 <div className="flex items-center justify-between">
@@ -403,7 +437,7 @@ export function MetadataPanel() {
           <Layers className="w-4 h-4 mr-2" />
           解析流水线
         </Button>
-        <Button variant="outline" className="w-full" size="sm">
+        <Button variant="outline" className="w-full" size="sm" onClick={() => void handleRagReparse()}>
           <RefreshCw className="w-4 h-4 mr-2" />
           重新解析
         </Button>
@@ -411,3 +445,4 @@ export function MetadataPanel() {
     </div>
   )
 }
+

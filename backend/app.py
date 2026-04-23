@@ -4,9 +4,11 @@ import asyncio
 import hashlib
 import importlib.util
 import json
+import mimetypes
 import os
 import re
 import sqlite3
+import sys
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
@@ -45,8 +47,17 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 PARSER_MODULE = load_module(BASE_DIR / "backend" / "python-parser" / "parser.py", "ai_doctor_parser")
 ANNOTATOR_MODULE = load_module(BASE_DIR / "backend" / "nlp-annotator" / "annotator.py", "ai_doctor_annotator")
+RAG_PIPELINE_SRC = BASE_DIR / "backend" / "rag_pipeline" / "src"
+if RAG_PIPELINE_SRC.exists() and str(RAG_PIPELINE_SRC) not in sys.path:
+    sys.path.insert(0, str(RAG_PIPELINE_SRC))
+
+try:
+    from rag_pipeline.services.pipeline_service import PipelineService
+except Exception:
+    PipelineService = None
 
 ALLOWED_EXTENSIONS = {".pdf", ".docx", ".doc", ".md", ".txt"}
+RAG_ALLOWED_EXTENSIONS = {".pdf", ".txt", ".md", ".docx", ".doc", ".pptx", ".ppt", ".xlsx", ".xls", ".csv"}
 MAX_FILE_SIZE = 100 * 1024 * 1024
 FILE_NAME_LEN_LIMIT = 255
 MAX_FILES_PER_UPLOAD = 32
@@ -116,6 +127,8 @@ app.add_middleware(
 
 tasks: dict[str, dict[str, Any]] = {}
 documents: dict[str, dict[str, Any]] = {}
+rag_results: dict[str, dict[str, Any]] = {}
+rag_pipeline_service = PipelineService() if PipelineService is not None else None
 
 
 class KBNodeCreatePayload(BaseModel):
@@ -128,6 +141,266 @@ class KBNodeCreatePayload(BaseModel):
 class AnnotatePayload(BaseModel):
     content: str
     documentName: str | None = None
+
+
+class RagParsePayload(BaseModel):
+    docId: str
+    sourceUri: str
+    filename: str
+    contentType: str | None = None
+    parserPreferences: dict[str, Any] | None = None
+
+
+class RagEnhancePayload(BaseModel):
+    docId: str
+
+
+def ensure_rag_pipeline_service() -> Any:
+    if rag_pipeline_service is None:
+        raise HTTPException(status_code=503, detail="rag_pipeline is unavailable")
+    return rag_pipeline_service
+
+
+def guess_content_type(filename: str) -> str:
+    content_type, _ = mimetypes.guess_type(filename)
+    return content_type or "application/octet-stream"
+
+
+def parse_parser_preferences(value: str | None) -> dict[str, Any]:
+    if value is None or value.strip() == "":
+        return {}
+    try:
+        payload = json.loads(value)
+    except json.JSONDecodeError as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid parserPreferences JSON: {exc}") from exc
+    if not isinstance(payload, dict):
+        raise HTTPException(status_code=400, detail="parserPreferences must be a JSON object")
+    return payload
+
+
+async def save_rag_upload(file: UploadFile) -> tuple[str, Path]:
+    filename = normalize_filename(file.filename or "")
+    if filename == "":
+        raise HTTPException(status_code=400, detail="No file selected")
+    ext = Path(filename).suffix.lower()
+    if ext not in RAG_ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail=f"Unsupported rag file type: {ext}")
+
+    content = await file.read()
+    if len(content) == 0:
+        raise HTTPException(status_code=400, detail="Empty file")
+    if len(content) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=400, detail="File too large")
+
+    date_dir = UPLOAD_DIR / "rag-pipeline" / datetime.utcnow().strftime("%Y-%m-%d")
+    date_dir.mkdir(parents=True, exist_ok=True)
+    save_path = date_dir / f"{uuid4()}-{filename}"
+    save_path.write_bytes(content)
+    return filename, save_path
+
+
+def build_rag_payload(
+    *,
+    doc_id: str,
+    source_uri: str,
+    filename: str,
+    content_type: str | None,
+    parser_preferences: dict[str, Any] | None,
+) -> dict[str, Any]:
+    return {
+        "doc_id": doc_id,
+        "source_uri": source_uri,
+        "filename": filename,
+        "content_type": content_type or guess_content_type(filename),
+        "parser_preferences": parser_preferences or {},
+    }
+
+
+def upsert_rag_document_and_task(
+    *,
+    doc_id: str,
+    filename: str,
+    save_path: Path,
+    file_size: int,
+    parse_result: dict[str, Any] | None = None,
+    enhance_result: dict[str, Any] | None = None,
+    status: str = "completed",
+    progress: int = 100,
+    current_stage: str = "Stored",
+    error: str | None = None,
+) -> dict[str, Any]:
+    """Upsert document/task records so existing frontend pages can display rag uploads."""
+    now = now_iso()
+    ext = Path(filename).suffix.lower()
+    task_id = f"rag-{doc_id}"
+    doc_status = "parsed" if status == "completed" else ("failed" if status == "failed" else "parsing")
+    documents[doc_id] = {
+        "id": doc_id,
+        "name": filename,
+        "type": ext.replace(".", ""),
+        "size": file_size,
+        "path": str(save_path),
+        "content": "",
+        "metadata": {"pipeline": "rag"},
+        "knowledgeBaseId": "kb-1",
+        "folderId": None,
+        "category": "RAG Upload",
+        "status": doc_status,
+        "createdAt": documents.get(doc_id, {}).get("createdAt", now),
+        "updatedAt": now,
+        "parsedAt": now if status == "completed" else None,
+        "chunks": len(parse_result.get("chunks", [])) if isinstance(parse_result, dict) else 0,
+        "vectors": len(enhance_result.get("embeddings", [])) if isinstance(enhance_result, dict) else 0,
+    }
+
+    task = {
+        "id": task_id,
+        "documentId": doc_id,
+        "documentName": filename,
+        "status": status,
+        "progress": progress,
+        "currentStage": current_stage,
+        "error": error,
+        "knowledgeBaseId": "kb-1",
+        "folderId": None,
+        "category": "RAG Upload",
+        "size": file_size,
+        "createdAt": tasks.get(task_id, {}).get("createdAt", now),
+        "startedAt": now if status in {"parsing", "completed", "failed"} else None,
+        "completedAt": now if status in {"completed", "failed"} else None,
+        "logs": [
+            {
+                "time": now,
+                "stage": "rag",
+                "status": status,
+                "progress": progress,
+                "message": f"RAG end-to-end {status}.",
+            }
+        ],
+    }
+    tasks[task_id] = task
+    return task
+
+
+async def run_rag_end_to_end_job(
+    *,
+    doc_id: str,
+    rag_payload: dict[str, Any],
+    save_path: Path,
+    filename: str,
+) -> None:
+    """Run RAG end-to-end in background and keep state/task observability updated."""
+    service = ensure_rag_pipeline_service()
+    slot = rag_results.setdefault(doc_id, {})
+    slot["status"] = "parsing"
+    slot["progress"] = 25
+    slot["currentStage"] = "Parsing"
+    slot["updatedAt"] = now_iso()
+    slot.pop("errors", None)
+    slot.pop("parse", None)
+    slot.pop("enhance", None)
+
+    upsert_rag_document_and_task(
+        doc_id=doc_id,
+        filename=filename,
+        save_path=save_path,
+        file_size=save_path.stat().st_size,
+        parse_result=None,
+        enhance_result=None,
+        status="parsing",
+        progress=25,
+        current_stage="Parsing",
+        error=None,
+    )
+
+    try:
+        result = await asyncio.to_thread(service.run_end_to_end, rag_payload)
+        slot["parse"] = result.get("parse", {})
+        slot["enhance"] = result.get("enhance", {})
+        slot["status"] = "completed"
+        slot["progress"] = 100
+        slot["currentStage"] = "Stored"
+        slot["updatedAt"] = now_iso()
+        upsert_rag_document_and_task(
+            doc_id=doc_id,
+            filename=filename,
+            save_path=save_path,
+            file_size=save_path.stat().st_size,
+            parse_result=result.get("parse", {}),
+            enhance_result=result.get("enhance", {}),
+            status="completed",
+            progress=100,
+            current_stage="Stored",
+            error=None,
+        )
+    except Exception as exc:
+        slot["errors"] = [f"rag end-to-end failed: {exc}"]
+        slot["status"] = "failed"
+        slot["progress"] = 100
+        slot["currentStage"] = "Failed"
+        slot["updatedAt"] = now_iso()
+        upsert_rag_document_and_task(
+            doc_id=doc_id,
+            filename=filename,
+            save_path=save_path,
+            file_size=save_path.stat().st_size,
+            parse_result=None,
+            enhance_result=None,
+            status="failed",
+            progress=100,
+            current_stage="Failed",
+            error=str(exc),
+        )
+
+
+def build_rag_state_item(doc_id: str, slot: dict[str, Any]) -> dict[str, Any]:
+    parse_payload = slot.get("parse") if isinstance(slot.get("parse"), dict) else {}
+    enhance_payload = slot.get("enhance") if isinstance(slot.get("enhance"), dict) else {}
+    parse_score = parse_payload.get("parse_quality_score")
+    enhance_score = enhance_payload.get("enhance_quality_score")
+    parse_requires_review = bool(parse_payload.get("requires_review", False))
+    enhance_requires_review = bool(enhance_payload.get("requires_review", False))
+
+    slot_status = slot.get("status")
+    slot_progress = slot.get("progress")
+    slot_current_stage = slot.get("currentStage")
+    status = str(slot_status) if isinstance(slot_status, str) else "completed"
+    progress = int(slot_progress) if isinstance(slot_progress, int) else 100
+    current_stage = str(slot_current_stage) if isinstance(slot_current_stage, str) else "Stored"
+    errors: list[str] = []
+    if isinstance(parse_payload.get("errors"), list):
+        errors.extend(str(item) for item in parse_payload.get("errors"))
+    if isinstance(enhance_payload.get("errors"), list):
+        errors.extend(str(item) for item in enhance_payload.get("errors"))
+    if isinstance(slot.get("errors"), list):
+        errors.extend(str(item) for item in slot.get("errors"))
+    if errors:
+        status = "failed"
+        current_stage = "Failed"
+        progress = 100
+    elif parse_requires_review or enhance_requires_review:
+        status = "parsing"
+        current_stage = "Review"
+        progress = 80
+
+    parse_chunks = parse_payload.get("chunks") if isinstance(parse_payload.get("chunks"), list) else []
+    embeddings = enhance_payload.get("embeddings") if isinstance(enhance_payload.get("embeddings"), list) else []
+
+    return {
+        "docId": doc_id,
+        "sourceUri": slot.get("sourceUri"),
+        "filename": slot.get("filename"),
+        "updatedAt": slot.get("updatedAt"),
+        "status": status,
+        "progress": progress,
+        "currentStage": current_stage,
+        "error": "; ".join(errors) if errors else None,
+        "parseScore": parse_score,
+        "enhanceScore": enhance_score,
+        "parseChunks": len(parse_chunks),
+        "vectorCount": len(embeddings),
+        "qaCount": len(enhance_payload.get("qa_pairs", [])) if isinstance(enhance_payload.get("qa_pairs"), list) else 0,
+    }
 
 
 def build_kb_tree() -> list[dict[str, Any]]:
@@ -524,6 +797,28 @@ async def process_document(task_id: str, document_id: str, file_path: Path, ext:
             ),
             encoding="utf-8",
         )
+
+        # Run rag_pipeline end-to-end in-process and cache result for frontend retrieval.
+        if rag_pipeline_service is not None:
+            rag_payload = build_rag_payload(
+                doc_id=document_id,
+                source_uri=str(file_path),
+                filename=document.get("name", file_path.name),
+                content_type=guess_content_type(str(document.get("name", file_path.name))),
+                parser_preferences={},
+            )
+            try:
+                rag_result = await asyncio.to_thread(rag_pipeline_service.run_end_to_end, rag_payload)
+                slot = rag_results.setdefault(document_id, {})
+                slot["sourceUri"] = str(file_path)
+                slot["filename"] = document.get("name", file_path.name)
+                slot["parse"] = rag_result.get("parse")
+                slot["enhance"] = rag_result.get("enhance")
+                slot["updatedAt"] = now_iso()
+            except Exception as rag_exc:
+                slot = rag_results.setdefault(document_id, {})
+                slot["errors"] = [f"auto rag end-to-end failed: {rag_exc}"]
+                slot["updatedAt"] = now_iso()
     except Exception as exc:
         task["status"] = "failed"
         task["progress"] = 0
@@ -833,3 +1128,247 @@ async def annotate(payload: AnnotatePayload) -> dict[str, Any]:
     if payload.content.strip() == "":
         raise HTTPException(status_code=400, detail="Missing content")
     return run_annotation(payload.content, payload.documentName)
+
+
+@app.post("/api/rag/parse")
+async def rag_parse(payload: RagParsePayload) -> dict[str, Any]:
+    service = ensure_rag_pipeline_service()
+    rag_payload = build_rag_payload(
+        doc_id=payload.docId,
+        source_uri=payload.sourceUri,
+        filename=payload.filename,
+        content_type=payload.contentType,
+        parser_preferences=payload.parserPreferences,
+    )
+    try:
+        parse_result = service.run_parse(rag_payload)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"rag parse failed: {exc}") from exc
+
+    slot = rag_results.setdefault(payload.docId, {})
+    slot["parse"] = parse_result
+    slot["updatedAt"] = now_iso()
+    return {"success": True, "docId": payload.docId, "parse": parse_result}
+
+
+@app.post("/api/rag/parse-file")
+async def rag_parse_file(
+    file: UploadFile = File(...),
+    docId: str | None = Form(default=None),
+    parserPreferences: str | None = Form(default=None),
+) -> dict[str, Any]:
+    service = ensure_rag_pipeline_service()
+    filename, save_path = await save_rag_upload(file)
+    parsed_preferences = parse_parser_preferences(parserPreferences)
+    rag_doc_id = docId or str(uuid4())
+    rag_payload = build_rag_payload(
+        doc_id=rag_doc_id,
+        source_uri=str(save_path),
+        filename=filename,
+        content_type=guess_content_type(filename),
+        parser_preferences=parsed_preferences,
+    )
+    try:
+        parse_result = service.run_parse(rag_payload)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"rag parse-file failed: {exc}") from exc
+
+    slot = rag_results.setdefault(rag_doc_id, {})
+    slot["sourceUri"] = str(save_path)
+    slot["filename"] = filename
+    slot["parse"] = parse_result
+    slot["updatedAt"] = now_iso()
+    upsert_rag_document_and_task(
+        doc_id=rag_doc_id,
+        filename=filename,
+        save_path=save_path,
+        file_size=save_path.stat().st_size,
+        parse_result=parse_result,
+        enhance_result=None,
+    )
+    return {
+        "success": True,
+        "docId": rag_doc_id,
+        "sourceUri": str(save_path),
+        "filename": filename,
+        "parse": parse_result,
+    }
+
+
+@app.post("/api/rag/enhance")
+async def rag_enhance(payload: RagEnhancePayload) -> dict[str, Any]:
+    service = ensure_rag_pipeline_service()
+    try:
+        enhance_result = service.run_enhance(payload.docId)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"rag enhance failed: {exc}") from exc
+
+    slot = rag_results.setdefault(payload.docId, {})
+    slot["enhance"] = enhance_result
+    slot["updatedAt"] = now_iso()
+    return {"success": True, "docId": payload.docId, "enhance": enhance_result}
+
+
+@app.post("/api/rag/end-to-end")
+async def rag_end_to_end(payload: RagParsePayload) -> dict[str, Any]:
+    service = ensure_rag_pipeline_service()
+    rag_payload = build_rag_payload(
+        doc_id=payload.docId,
+        source_uri=payload.sourceUri,
+        filename=payload.filename,
+        content_type=payload.contentType,
+        parser_preferences=payload.parserPreferences,
+    )
+    try:
+        result = service.run_end_to_end(rag_payload)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"rag end-to-end failed: {exc}") from exc
+
+    slot = rag_results.setdefault(payload.docId, {})
+    slot["parse"] = result.get("parse", {})
+    slot["enhance"] = result.get("enhance", {})
+    slot["updatedAt"] = now_iso()
+    return {"success": True, "docId": payload.docId, "result": result}
+
+
+@app.post("/api/rag/end-to-end-file")
+async def rag_end_to_end_file(
+    file: UploadFile = File(...),
+    docId: str | None = Form(default=None),
+    parserPreferences: str | None = Form(default=None),
+) -> dict[str, Any]:
+    ensure_rag_pipeline_service()
+    filename, save_path = await save_rag_upload(file)
+    parsed_preferences = parse_parser_preferences(parserPreferences)
+    rag_doc_id = docId or str(uuid4())
+    rag_payload = build_rag_payload(
+        doc_id=rag_doc_id,
+        source_uri=str(save_path),
+        filename=filename,
+        content_type=guess_content_type(filename),
+        parser_preferences=parsed_preferences,
+    )
+    slot = rag_results.setdefault(rag_doc_id, {})
+    slot["sourceUri"] = str(save_path)
+    slot["filename"] = filename
+    slot["status"] = "parsing"
+    slot["progress"] = 10
+    slot["currentStage"] = "Queued"
+    slot["updatedAt"] = now_iso()
+    task = upsert_rag_document_and_task(
+        doc_id=rag_doc_id,
+        filename=filename,
+        save_path=save_path,
+        file_size=save_path.stat().st_size,
+        parse_result=None,
+        enhance_result=None,
+        status="parsing",
+        progress=10,
+        current_stage="Queued",
+        error=None,
+    )
+    asyncio.create_task(
+        run_rag_end_to_end_job(
+            doc_id=rag_doc_id,
+            rag_payload=rag_payload,
+            save_path=save_path,
+            filename=filename,
+        )
+    )
+    return {
+        "success": True,
+        "docId": rag_doc_id,
+        "sourceUri": str(save_path),
+        "filename": filename,
+        "task": task,
+        "accepted": True,
+        "state": build_rag_state_item(rag_doc_id, slot),
+    }
+
+
+@app.get("/api/rag/results/{doc_id}")
+async def rag_results_by_doc(doc_id: str) -> dict[str, Any]:
+    service = ensure_rag_pipeline_service()
+    slot = rag_results.get(doc_id, {})
+    return {
+        "docId": doc_id,
+        "parse": slot.get("parse"),
+        "enhance": slot.get("enhance"),
+        "updatedAt": slot.get("updatedAt"),
+        "sourceUri": slot.get("sourceUri"),
+        "filename": slot.get("filename"),
+        "stores": {
+            "chunks": service.doc_store.load_chunks(doc_id),
+            "vectors": service.vector_store.rows.get(doc_id, []),
+            "entities": service.graph_store.entities.get(doc_id, []),
+            "relations": service.graph_store.relations.get(doc_id, []),
+        },
+    }
+
+
+@app.get("/api/rag/results")
+async def rag_results_all() -> dict[str, Any]:
+    return {"results": rag_results}
+
+
+@app.get("/api/rag/state")
+async def rag_state_all() -> dict[str, Any]:
+    items = [build_rag_state_item(doc_id, slot) for doc_id, slot in rag_results.items()]
+    return {"items": items}
+
+
+@app.get("/api/rag/state/{doc_id}")
+async def rag_state_by_doc(doc_id: str) -> dict[str, Any]:
+    slot = rag_results.get(doc_id)
+    if slot is None:
+        raise HTTPException(status_code=404, detail="RAG state not found")
+    return {"item": build_rag_state_item(doc_id, slot)}
+
+
+@app.post("/api/rag/retry/{doc_id}")
+async def rag_retry(doc_id: str) -> dict[str, Any]:
+    ensure_rag_pipeline_service()
+    slot = rag_results.get(doc_id)
+    if slot is None:
+        raise HTTPException(status_code=404, detail="RAG state not found")
+    source_uri = slot.get("sourceUri")
+    filename = slot.get("filename")
+    if not source_uri or not filename:
+        raise HTTPException(status_code=400, detail="RAG source is missing for this doc")
+
+    rag_payload = build_rag_payload(
+        doc_id=doc_id,
+        source_uri=str(source_uri),
+        filename=str(filename),
+        content_type=guess_content_type(str(filename)),
+        parser_preferences={},
+    )
+    slot["status"] = "parsing"
+    slot["progress"] = 10
+    slot["currentStage"] = "Queued"
+    slot.pop("errors", None)
+    slot["updatedAt"] = now_iso()
+    save_path = Path(str(source_uri))
+    if not save_path.exists():
+        raise HTTPException(status_code=404, detail="RAG source file does not exist")
+    upsert_rag_document_and_task(
+        doc_id=doc_id,
+        filename=str(filename),
+        save_path=save_path,
+        file_size=save_path.stat().st_size,
+        parse_result=None,
+        enhance_result=None,
+        status="parsing",
+        progress=10,
+        current_stage="Queued",
+        error=None,
+    )
+    asyncio.create_task(
+        run_rag_end_to_end_job(
+            doc_id=doc_id,
+            rag_payload=rag_payload,
+            save_path=save_path,
+            filename=str(filename),
+        )
+    )
+    return {"success": True, "docId": doc_id, "accepted": True, "state": build_rag_state_item(doc_id, slot)}

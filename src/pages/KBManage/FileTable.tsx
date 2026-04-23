@@ -1,4 +1,4 @@
-import { useState, useEffect, Fragment, useMemo } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { cn } from '@/lib/cn'
 import { useKBStore, type KBTreeNode } from '@/stores/kbStore'
 import { API_BASE_WITH_PATH } from '@/config/api'
@@ -8,20 +8,33 @@ import { Button } from '@/components/ui/button'
 import { FileUpload } from '@/components/ui/FileUpload'
 import { ParseProgress, calculateStages } from '@/components/ui/ParseProgress'
 import {
-  FileText,
-  File,
-  Trash2,
-  Play,
-  Search,
-  ChevronUp,
   ChevronDown,
-  MoreHorizontal,
-  Upload,
-  RefreshCw,
   ChevronRight,
+  ChevronUp,
+  File,
+  FileText,
+  MoreHorizontal,
+  Play,
+  RefreshCw,
+  Search,
+  Trash2,
+  Upload,
 } from 'lucide-react'
 
-// Get file type icon
+interface RagStateItem {
+  docId: string
+  filename?: string
+  sourceUri?: string
+  updatedAt?: string
+  status?: 'pending' | 'parsing' | 'completed' | 'failed'
+  progress?: number
+  currentStage?: string
+  error?: string | null
+}
+
+type SortDirection = 'asc' | 'desc' | null
+type SortField = 'name' | 'size' | 'updatedAt' | 'status' | null
+
 function getFileIcon(type: Document['type']) {
   const iconClass = 'w-5 h-5'
   switch (type) {
@@ -30,6 +43,13 @@ function getFileIcon(type: Document['type']) {
     case 'doc':
     case 'docx':
       return <FileText className={cn(iconClass, 'text-blue-500')} />
+    case 'ppt':
+    case 'pptx':
+      return <FileText className={cn(iconClass, 'text-orange-500')} />
+    case 'xls':
+    case 'xlsx':
+    case 'csv':
+      return <FileText className={cn(iconClass, 'text-emerald-600')} />
     case 'txt':
       return <File className={cn(iconClass, 'text-slate-500')} />
     case 'md':
@@ -39,30 +59,27 @@ function getFileIcon(type: Document['type']) {
   }
 }
 
-// Get status badge variant
 function getStatusBadge(status: Document['status']) {
   switch (status) {
     case 'pending':
-      return <Badge variant="secondary">待解析</Badge>
+      return <Badge variant="secondary">Pending</Badge>
     case 'parsing':
-      return <Badge variant="info">解析中</Badge>
+      return <Badge variant="info">Processing</Badge>
     case 'parsed':
-      return <Badge variant="success">已解析</Badge>
+      return <Badge variant="success">Completed</Badge>
     case 'failed':
-      return <Badge variant="destructive">解析失败</Badge>
+      return <Badge variant="destructive">Failed</Badge>
     default:
-      return <Badge variant="outline">未知</Badge>
+      return <Badge variant="outline">Unknown</Badge>
   }
 }
 
-// Format file size
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-// Format date
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr)
   return date.toLocaleDateString('zh-CN', {
@@ -72,9 +89,20 @@ function formatDate(dateStr: string): string {
   })
 }
 
-// Sort direction type
-type SortDirection = 'asc' | 'desc' | null
-type SortField = 'name' | 'size' | 'updatedAt' | 'status' | null
+function mapRagStatusToDocumentStatus(status?: string): Document['status'] {
+  switch (status) {
+    case 'pending':
+      return 'pending'
+    case 'parsing':
+      return 'parsing'
+    case 'completed':
+      return 'parsed'
+    case 'failed':
+      return 'failed'
+    default:
+      return 'pending'
+  }
+}
 
 function findNodeById(nodes: KBTreeNode[], id: string | null): KBTreeNode | null {
   if (!id) return null
@@ -91,9 +119,7 @@ function collectDescendantFolderIds(node: KBTreeNode): string[] {
   const stack = [...(node.children || [])]
   while (stack.length > 0) {
     const current = stack.pop()!
-    if (current.type === 'folder') {
-      result.push(current.id)
-    }
+    if (current.type === 'folder') result.push(current.id)
     if (current.children && current.children.length > 0) {
       stack.push(...current.children)
     }
@@ -114,7 +140,6 @@ export function FileTable() {
     clearFileSelection,
     setSearchQuery,
     deleteSelectedFiles,
-    parseSelectedFiles,
     setSelectedFile,
     setFiles,
     updateKnowledgeBaseCounts,
@@ -125,165 +150,99 @@ export function FileTable() {
   const [showUploadModal, setShowUploadModal] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [expandedTaskIds, setExpandedTaskIds] = useState<Set<string>>(new Set())
+  const [taskDetails, setTaskDetails] = useState<Map<string, { progress: number; currentStage: string; error?: string }>>(
+    new Map()
+  )
 
-  // Task details for progress display
-  const [taskDetails, setTaskDetails] = useState<Map<string, { progress: number; currentStage: string; error?: string }>>(new Map())
+  const applyRagItems = (items: RagStateItem[]) => {
+    const details = new Map<string, { progress: number; currentStage: string; error?: string }>()
+    items.forEach((item) => {
+      details.set(item.docId, {
+        progress: item.progress ?? 0,
+        currentStage: item.currentStage || 'Pending',
+        error: item.error || undefined,
+      })
+    })
+    setTaskDetails(details)
 
-  // Poll for task progress every 3 seconds
-  useEffect(() => {
-    const pollProgress = async () => {
-      try {
-        const response = await fetch(API_BASE_WITH_PATH('/api/tasks'))
-        const data = await response.json()
+    setFiles(
+      items.map((item) => ({
+        id: item.docId,
+        name: item.filename || 'unknown',
+        type: (item.filename?.split('.').pop()?.toLowerCase() || 'unknown') as Document['type'],
+        size: 0,
+        knowledgeBaseId: 'kb-1',
+        folderId: undefined,
+        status: mapRagStatusToDocumentStatus(item.status),
+        version: 'v1.0',
+        tags: [],
+        category: 'RAG Upload',
+        createdAt: item.updatedAt || new Date().toISOString(),
+        updatedAt: item.updatedAt || new Date().toISOString(),
+        parsedAt: item.status === 'completed' ? item.updatedAt : undefined,
+      }))
+    )
+    updateKnowledgeBaseCounts()
+  }
 
-        if (data.tasks) {
-          // Update task details for progress display
-          const details = new Map<string, { progress: number; currentStage: string; error?: string }>()
-          data.tasks.forEach((task: any) => {
-            details.set(task.documentId, {
-              progress: task.progress,
-              currentStage: task.currentStage,
-              error: task.error,
-            })
-          })
-          setTaskDetails(details)
-
-          // Update files with latest task status
-          setFiles(data.tasks.map((task: any) => ({
-            id: task.documentId,
-            name: task.documentName,
-            type: task.documentName.split('.').pop()?.toLowerCase() || 'unknown' as any,
-            size: task.size || 0,
-            knowledgeBaseId: task.knowledgeBaseId || 'kb-1',
-            folderId: task.folderId || undefined,
-            status: mapTaskStatusToDocumentStatus(task.status),
-            version: 'v1.0',
-            tags: [],
-            category: task.category || '上传文档',
-            createdAt: task.createdAt,
-            updatedAt: task.completedAt || task.updatedAt || task.createdAt,
-            parsedAt: task.status === 'completed' ? task.completedAt : undefined,
-          })))
-          // Update knowledge base counts
-          updateKnowledgeBaseCounts()
-        }
-      } catch (error) {
-        console.log('Polling error, using mock data')
-      }
-    }
-
-    const interval = setInterval(pollProgress, 3000)
-    return () => clearInterval(interval)
-  }, [setFiles, updateKnowledgeBaseCounts])
-
-  const mapTaskStatusToDocumentStatus = (taskStatus: string): Document['status'] => {
-    switch (taskStatus) {
-      case 'pending':
-        return 'pending'
-      case 'uploading':
-      case 'parsing':
-      case 'chunking':
-      case 'vectorizing':
-      case 'store':
-        return 'parsing'
-      case 'completed':
-        return 'parsed'
-      case 'failed':
-        return 'failed'
-      default:
-        return 'pending'
+  const fetchRagState = async () => {
+    const response = await fetch(API_BASE_WITH_PATH('/api/rag/state'))
+    if (!response.ok) throw new Error('Failed to fetch rag state')
+    const data = await response.json()
+    if (Array.isArray(data.items)) {
+      applyRagItems(data.items as RagStateItem[])
     }
   }
 
-  // Refresh files from backend
+  useEffect(() => {
+    const poll = async () => {
+      try {
+        await fetchRagState()
+      } catch {
+        // ignore polling error
+      }
+    }
+    void poll()
+    const interval = setInterval(poll, 3000)
+    return () => clearInterval(interval)
+  }, [])
+
   const handleRefresh = async () => {
     setIsRefreshing(true)
     try {
-      const response = await fetch(API_BASE_WITH_PATH('/api/documents'))
-      const data = await response.json()
-
-      if (data.documents) {
-        setFiles(data.documents.map((doc: any) => ({
-          id: doc.id,
-          name: doc.name,
-          type: doc.type,
-          size: doc.size,
-          knowledgeBaseId: doc.knowledgeBaseId || 'kb-1',
-          folderId: doc.folderId || undefined,
-          status: doc.status || 'pending',
-          version: 'v1.0',
-          tags: [],
-          category: doc.category || '上传文档',
-          createdAt: doc.createdAt,
-          updatedAt: doc.updatedAt || doc.createdAt,
-          parsedAt: doc.parsedAt,
-        })))
-        // Update knowledge base counts after loading files
-        updateKnowledgeBaseCounts()
-      }
-    } catch (error) {
-      console.log('Refresh error, using mock data')
+      await fetchRagState()
     } finally {
       setIsRefreshing(false)
     }
   }
 
-  // Toggle task detail expansion
-  const toggleTaskExpand = (fileId: string) => {
-    setExpandedTaskIds((prev) => {
-      const newSet = new Set(prev)
-      if (newSet.has(fileId)) {
-        newSet.delete(fileId)
-      } else {
-        newSet.add(fileId)
-      }
-      return newSet
-    })
-  }
-
-  const selectedNode = useMemo(
-    () => findNodeById(knowledgeBases, selectedKBId),
-    [knowledgeBases, selectedKBId]
-  )
+  const selectedNode = useMemo(() => findNodeById(knowledgeBases, selectedKBId), [knowledgeBases, selectedKBId])
 
   const folderScopeIds = useMemo(() => {
-    if (!selectedNode || selectedNode.type !== 'folder') {
-      return new Set<string>()
-    }
+    if (!selectedNode || selectedNode.type !== 'folder') return new Set<string>()
     const ids = [selectedNode.id, ...collectDescendantFolderIds(selectedNode)]
     return new Set(ids)
   }, [selectedNode])
 
-  // Filter files by selected KB/folder and search query
   const filteredFiles = files.filter((file) => {
-    const matchesSearch = searchQuery
-      ? file.name.toLowerCase().includes(searchQuery.toLowerCase())
-      : true
+    const matchesSearch = searchQuery ? file.name.toLowerCase().includes(searchQuery.toLowerCase()) : true
     if (!matchesSearch) return false
-
     if (!selectedNode) return true
-    if (selectedNode.type === 'kb') {
-      return file.knowledgeBaseId === selectedNode.id
-    }
-
-    if (file.folderId) {
-      return folderScopeIds.has(file.folderId)
-    }
+    if (selectedNode.type === 'kb') return file.knowledgeBaseId === selectedNode.id
+    if (file.folderId) return folderScopeIds.has(file.folderId)
     return file.category === selectedNode.name
   })
 
-  // Sort files
   const sortedFiles = [...filteredFiles].sort((a, b) => {
     if (!sortField || !sortDirection) return 0
     const multiplier = sortDirection === 'asc' ? 1 : -1
-
     switch (sortField) {
       case 'name':
         return multiplier * a.name.localeCompare(b.name)
       case 'size':
         return multiplier * (a.size - b.size)
       case 'updatedAt':
-        return multiplier * new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
+        return multiplier * (new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime())
       case 'status':
         return multiplier * a.status.localeCompare(b.status)
       default:
@@ -291,12 +250,10 @@ export function FileTable() {
     }
   })
 
-  // Handle sort
   const handleSort = (field: SortField) => {
     if (sortField === field) {
-      if (sortDirection === 'asc') {
-        setSortDirection('desc')
-      } else if (sortDirection === 'desc') {
+      if (sortDirection === 'asc') setSortDirection('desc')
+      else if (sortDirection === 'desc') {
         setSortField(null)
         setSortDirection(null)
       }
@@ -306,11 +263,8 @@ export function FileTable() {
     }
   }
 
-  // Render sort indicator
   const renderSortIcon = (field: SortField) => {
-    if (sortField !== field) {
-      return <ChevronUp className="w-3 h-3 text-slate-300" />
-    }
+    if (sortField !== field) return <ChevronUp className="w-3 h-3 text-slate-300" />
     return sortDirection === 'asc' ? (
       <ChevronUp className="w-3 h-3 text-green-500" />
     ) : (
@@ -318,7 +272,6 @@ export function FileTable() {
     )
   }
 
-  // Handle row click
   const handleRowClick = (file: Document, e: React.MouseEvent) => {
     e.stopPropagation()
     const versions =
@@ -328,89 +281,99 @@ export function FileTable() {
             { version: file.version, updatedAt: file.updatedAt },
             { version: 'v1.0', updatedAt: file.createdAt },
           ]
-
+    const detail = taskDetails.get(file.id)
     setSelectedFile({
       ...file,
       versions,
-      parseDetails:
-        file.status === 'parsed'
-          ? { chunks: 42, vectors: 168 }
-          : file.status === 'failed'
-          ? { chunks: 0, vectors: 0, error: '文档格式不支持' }
-          : undefined,
+      parseDetails: detail
+        ? {
+            chunks: detail.progress > 0 ? Math.max(1, Math.round(detail.progress / 10)) : 0,
+            vectors: detail.progress > 0 ? Math.max(1, Math.round(detail.progress / 10)) : 0,
+            error: detail.error,
+          }
+        : undefined,
     })
   }
 
-  // Handle select all
   const handleSelectAll = () => {
-    if (selectedFileIds.length === sortedFiles.length) {
-      clearFileSelection()
-    } else {
-      selectFiles(sortedFiles.map((file) => file.id))
+    if (selectedFileIds.length === sortedFiles.length) clearFileSelection()
+    else selectFiles(sortedFiles.map((file) => file.id))
+  }
+
+  const hasPendingFiles = selectedFileIds.some((id) => files.find((f) => f.id === id)?.status === 'pending')
+
+  const handleRagParseSelected = async () => {
+    const pendingIds = selectedFileIds.filter((id) => files.find((f) => f.id === id)?.status === 'pending')
+    if (pendingIds.length === 0) return
+    try {
+      await Promise.all(
+        pendingIds.map((fileId) =>
+          fetch(API_BASE_WITH_PATH(`/api/rag/retry/${fileId}`), {
+            method: 'POST',
+          })
+        )
+      )
+      await handleRefresh()
+    } catch (error) {
+      console.error('RAG parse selected files failed:', error)
     }
   }
 
-  // Check if any selected files can be parsed
-  const hasPendingFiles = selectedFileIds.some((id) => {
-    const file = files.find((f) => f.id === id)
-    return file?.status === 'pending'
-  })
+  const toggleTaskExpand = (fileId: string) => {
+    setExpandedTaskIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(fileId)) next.delete(fileId)
+      else next.add(fileId)
+      return next
+    })
+  }
 
   return (
     <div className="h-full flex flex-col">
-      {/* Toolbar */}
       <div className="px-4 py-3 border-b border-slate-200 flex items-center gap-3">
-        {/* Search */}
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder="搜索文件..."
+            placeholder="Search files..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-1.5 text-sm border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
           />
         </div>
 
-        {/* Upload button */}
         <Button variant="default" size="sm" onClick={() => setShowUploadModal(true)}>
           <Upload className="w-4 h-4 mr-1" />
-          上传文件
+          Upload
         </Button>
 
-        {/* Refresh button */}
         <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
-          <RefreshCw className={cn("w-4 h-4 mr-1", isRefreshing && "animate-spin")} />
-          刷新
+          <RefreshCw className={cn('w-4 h-4 mr-1', isRefreshing && 'animate-spin')} />
+          Refresh
         </Button>
 
-        {/* Batch actions */}
         {selectedFileIds.length > 0 && (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-500">已选 {selectedFileIds.length} 项</span>
+            <span className="text-sm text-slate-500">Selected {selectedFileIds.length}</span>
             {hasPendingFiles && viewMode === 'files' && (
-              <Button variant="outline" size="sm" onClick={parseSelectedFiles}>
+              <Button variant="outline" size="sm" onClick={handleRagParseSelected}>
                 <Play className="w-4 h-4 mr-1" />
-                解析
+                Parse
               </Button>
             )}
             <Button variant="outline" size="sm" onClick={deleteSelectedFiles}>
               <Trash2 className="w-4 h-4 mr-1" />
-              删除
+              Delete
             </Button>
           </div>
         )}
       </div>
 
-      {/* Table */}
       <div className="flex-1 overflow-auto">
         <table className="w-full">
           <thead className="bg-slate-50 sticky top-0">
             <tr>
-              {/* Expand toggle */}
               <th className="w-10 px-3 py-2 text-left"></th>
-
-              {/* Checkbox column */}
               <th className="w-10 px-3 py-2 text-left">
                 <input
                   type="checkbox"
@@ -419,87 +382,49 @@ export function FileTable() {
                   className="rounded border-slate-300 text-green-500 focus:ring-green-500"
                 />
               </th>
-
-              {/* File name */}
               <th className="px-3 py-2 text-left">
-                <button
-                  onClick={() => handleSort('name')}
-                  className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700"
-                >
-                  文件名
+                <button onClick={() => handleSort('name')} className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700">
+                  Name
                   {renderSortIcon('name')}
                 </button>
               </th>
-
-              {/* Status */}
               <th className="px-3 py-2 text-left">
-                <button
-                  onClick={() => handleSort('status')}
-                  className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700"
-                >
-                  状态
+                <button onClick={() => handleSort('status')} className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700">
+                  Status
                   {renderSortIcon('status')}
                 </button>
               </th>
-
-              {/* Version */}
+              <th className="px-3 py-2 text-left"><span className="text-xs font-medium text-slate-500">Version</span></th>
               <th className="px-3 py-2 text-left">
-                <span className="text-xs font-medium text-slate-500">版本</span>
-              </th>
-
-              {/* Size */}
-              <th className="px-3 py-2 text-left">
-                <button
-                  onClick={() => handleSort('size')}
-                  className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700"
-                >
-                  大小
+                <button onClick={() => handleSort('size')} className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700">
+                  Size
                   {renderSortIcon('size')}
                 </button>
               </th>
-
-              {/* Updated */}
               <th className="px-3 py-2 text-left">
-                <button
-                  onClick={() => handleSort('updatedAt')}
-                  className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700"
-                >
-                  更新时间
+                <button onClick={() => handleSort('updatedAt')} className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700">
+                  Updated
                   {renderSortIcon('updatedAt')}
                 </button>
               </th>
-
-              {/* Actions */}
               <th className="w-10 px-3 py-2"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {sortedFiles.map((file) => {
-              const taskDetail = taskDetails.get(file.id)
+              const detail = taskDetails.get(file.id)
               const isExpanded = expandedTaskIds.has(file.id)
-              const isParsing = file.status === 'parsing' && taskDetail
-
+              const isParsing = file.status === 'parsing' && detail
               return (
                 <Fragment key={file.id}>
                   <tr
                     onClick={(e) => handleRowClick(file, e)}
-                    className={cn(
-                      'hover:bg-slate-50 cursor-pointer transition-colors',
-                      selectedFileIds.includes(file.id) && 'bg-green-50'
-                    )}
+                    className={cn('hover:bg-slate-50 cursor-pointer transition-colors', selectedFileIds.includes(file.id) && 'bg-green-50')}
                   >
                     <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                       {isParsing && (
-                        <button
-                          onClick={() => toggleTaskExpand(file.id)}
-                          className="p-1 hover:bg-slate-100 rounded"
-                        >
-                          <ChevronRight
-                            className={cn(
-                              'w-4 h-4 text-slate-400 transition-transform',
-                              isExpanded && 'rotate-90'
-                            )}
-                          />
+                        <button onClick={() => toggleTaskExpand(file.id)} className="p-1 hover:bg-slate-100 rounded">
+                          <ChevronRight className={cn('w-4 h-4 text-slate-400 transition-transform', isExpanded && 'rotate-90')} />
                         </button>
                       )}
                     </td>
@@ -517,41 +442,24 @@ export function FileTable() {
                         <span className="text-sm text-slate-700 truncate max-w-xs">{file.name}</span>
                       </div>
                     </td>
+                    <td className="px-3 py-2">{isParsing ? <Badge variant="info" className="animate-pulse">Processing</Badge> : getStatusBadge(file.status)}</td>
+                    <td className="px-3 py-2"><span className="text-sm text-slate-600">{file.version}</span></td>
+                    <td className="px-3 py-2"><span className="text-sm text-slate-500">{formatSize(file.size)}</span></td>
+                    <td className="px-3 py-2"><span className="text-sm text-slate-500">{formatDate(file.updatedAt)}</span></td>
                     <td className="px-3 py-2">
-                      {isParsing ? (
-                        <Badge variant="info" className="animate-pulse">解析中</Badge>
-                      ) : (
-                        getStatusBadge(file.status)
-                      )}
-                    </td>
-                    <td className="px-3 py-2">
-                      <span className="text-sm text-slate-600">{file.version}</span>
-                    </td>
-                    <td className="px-3 py-2">
-                      <span className="text-sm text-slate-500">{formatSize(file.size)}</span>
-                    </td>
-                    <td className="px-3 py-2">
-                      <span className="text-sm text-slate-500">{formatDate(file.updatedAt)}</span>
-                    </td>
-                    <td className="px-3 py-2">
-                      <button
-                        onClick={(e) => e.stopPropagation()}
-                        className="p-1 hover:bg-slate-100 rounded"
-                      >
+                      <button onClick={(e) => e.stopPropagation()} className="p-1 hover:bg-slate-100 rounded">
                         <MoreHorizontal className="w-4 h-4 text-slate-400" />
                       </button>
                     </td>
                   </tr>
-
-                  {/* Expanded task detail row */}
-                  {isExpanded && isParsing && taskDetail && (
+                  {isExpanded && isParsing && detail && (
                     <tr className="bg-slate-50">
                       <td colSpan={8} className="px-3 py-4">
                         <ParseProgress
-                          stages={calculateStages(taskDetail.progress)}
-                          currentStage={taskDetail.currentStage}
-                          progress={taskDetail.progress}
-                          error={taskDetail.error}
+                          stages={calculateStages(detail.progress)}
+                          currentStage={detail.currentStage}
+                          progress={detail.progress}
+                          error={detail.error}
                         />
                       </td>
                     </tr>
@@ -562,37 +470,30 @@ export function FileTable() {
           </tbody>
         </table>
 
-        {/* Empty state */}
         {sortedFiles.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-slate-400">
             <FileText className="w-12 h-12 mb-2" />
-            <p className="text-sm">暂无文件</p>
+            <p className="text-sm">No files</p>
           </div>
         )}
       </div>
 
-      {/* Footer with pagination */}
       <div className="px-4 py-2 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
-        <span className="text-xs text-slate-500">共 {sortedFiles.length} 个文件</span>
+        <span className="text-xs text-slate-500">Total {sortedFiles.length} files</span>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" disabled>
-            上一页
-          </Button>
-          <span className="text-xs text-slate-500">第 1 页</span>
-          <Button variant="ghost" size="sm" disabled>
-            下一页
-          </Button>
+          <Button variant="ghost" size="sm" disabled>Prev</Button>
+          <span className="text-xs text-slate-500">Page 1</span>
+          <Button variant="ghost" size="sm" disabled>Next</Button>
         </div>
       </div>
 
-      {/* Upload Modal */}
       {showUploadModal && (
         <FileUpload
           targetNode={selectedNode ? { id: selectedNode.id, type: selectedNode.type } : null}
           onClose={() => setShowUploadModal(false)}
           onUploadComplete={() => {
             setShowUploadModal(false)
-            handleRefresh()
+            void handleRefresh()
           }}
         />
       )}

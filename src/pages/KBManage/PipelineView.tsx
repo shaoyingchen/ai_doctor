@@ -1,26 +1,47 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { cn } from '@/lib/cn'
 import { Badge } from '@/components/ui/badge'
 import { calculateStages } from '@/components/ui/ParseProgress'
 import { API_BASE_WITH_PATH } from '@/config/api'
-import type { ParseTask } from '@/types'
 import {
-  FileText,
-  Clock,
+  AlertCircle,
   CheckCircle2,
+  Clock,
+  Cpu,
+  Database,
+  FileText,
+  Layers,
   RefreshCw,
   Upload,
-  Layers,
-  Database,
-  AlertCircle,
-  Cpu,
 } from 'lucide-react'
 
 interface PipelineViewProps {
   documentId?: string
 }
 
-// Info row component
+interface RagStateItem {
+  docId: string
+  filename?: string
+  status: 'pending' | 'parsing' | 'completed' | 'failed'
+  progress: number
+  currentStage: string
+  error?: string | null
+  updatedAt?: string
+}
+
+interface ViewTask {
+  id: string
+  documentId: string
+  documentName: string
+  status: 'pending' | 'parsing' | 'completed' | 'failed'
+  progress: number
+  currentStage: string
+  error?: string
+  createdAt: string
+  startedAt?: string
+  completedAt?: string
+}
+
 function InfoRow({
   label,
   value,
@@ -39,7 +60,6 @@ function InfoRow({
   )
 }
 
-// Stage detail card
 function StageCard({
   stage,
   index,
@@ -55,7 +75,6 @@ function StageCard({
 }) {
   const stageIcons = [Upload, FileText, Layers, Database, CheckCircle2]
   const StageIcon = stageIcons[index]
-
   return (
     <div
       className={cn(
@@ -95,8 +114,6 @@ function StageCard({
           </div>
         </div>
       </div>
-
-      {/* Progress bar */}
       <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
         <div
           className={cn(
@@ -109,70 +126,70 @@ function StageCard({
           style={{ width: `${Math.min(stage.progress, 100)}%` }}
         />
       </div>
-
-      {/* Status text */}
-      {isActive && (
-        <p className="text-[10px] text-primary mt-1">处理中...</p>
-      )}
-      {isFailed && (
-        <p className="text-[10px] text-red-600 mt-1">处理失败</p>
-      )}
     </div>
   )
 }
 
+function mapRagStateToTask(state: RagStateItem): ViewTask {
+  const now = state.updatedAt || new Date().toISOString()
+  return {
+    id: `rag-${state.docId}`,
+    documentId: state.docId,
+    documentName: state.filename || 'unknown',
+    status: state.status,
+    progress: state.progress,
+    currentStage: state.currentStage,
+    error: state.error || undefined,
+    createdAt: now,
+    startedAt: now,
+    completedAt: state.status === 'completed' ? now : undefined,
+  }
+}
+
 export function PipelineView({ documentId }: PipelineViewProps) {
-  const [task, setTask] = useState<ParseTask | null>(null)
+  const [task, setTask] = useState<ViewTask | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Fetch task details
   const fetchTask = async () => {
     if (!documentId) {
       setTask(null)
       setLoading(false)
       return
     }
-
     try {
-      const response = await fetch(API_BASE_WITH_PATH('/api/tasks'))
-      if (!response.ok) throw new Error('Failed to fetch tasks')
+      const response = await fetch(API_BASE_WITH_PATH(`/api/rag/state/${documentId}`))
+      if (!response.ok) throw new Error('Failed to fetch rag state')
       const data = await response.json()
-      const foundTask = (data.tasks || []).find((t: ParseTask) => t.documentId === documentId)
-      setTask(foundTask || null)
-    } catch (error) {
-      console.log('Pipeline view: fetch error', error)
+      const item = data.item as RagStateItem | undefined
+      setTask(item ? mapRagStateToTask(item) : null)
+    } catch {
       setTask(null)
     } finally {
       setLoading(false)
     }
   }
 
-  // Retry task
   const handleRetry = async () => {
     if (!task) return
     try {
-      await fetch(API_BASE_WITH_PATH(`/api/tasks/${task.id}/retry`), {
-        method: 'POST',
-      })
-      fetchTask()
-    } catch (error) {
-      console.error('Retry failed:', error)
+      await fetch(API_BASE_WITH_PATH(`/api/rag/retry/${task.documentId}`), { method: 'POST' })
+      await fetchTask()
+    } catch {
+      // ignore
     }
   }
 
-  // Poll for updates every 2 seconds
   useEffect(() => {
-    fetchTask()
-    const interval = setInterval(fetchTask, 2000)
+    void fetchTask()
+    const interval = setInterval(() => void fetchTask(), 2000)
     return () => clearInterval(interval)
   }, [documentId])
 
   const stages = task ? calculateStages(task.progress) : []
-
-  // Determine current active stage
-  const activeStageIndex = task && task.status !== 'pending' && task.status !== 'completed' && task.status !== 'failed'
-    ? Math.floor(task.progress / 20)
-    : -1
+  const activeStageIndex =
+    task && task.status !== 'pending' && task.status !== 'completed' && task.status !== 'failed'
+      ? Math.floor(task.progress / 20)
+      : -1
 
   if (!documentId) {
     return (
@@ -180,10 +197,7 @@ export function PipelineView({ documentId }: PipelineViewProps) {
         <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
           <Layers className="w-8 h-8 text-slate-300" />
         </div>
-        <p className="text-sm font-medium text-slate-500">暂无选中文件</p>
-        <p className="text-xs text-slate-400 mt-1 text-center">
-          在文件库中选择一个文件<br />查看其解析流水线详情
-        </p>
+        <p className="text-sm font-medium text-slate-500">No file selected</p>
       </div>
     )
   }
@@ -193,7 +207,7 @@ export function PipelineView({ documentId }: PipelineViewProps) {
       <div className="h-full flex items-center justify-center text-slate-400">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-500 rounded-full animate-spin" />
-          <span className="text-sm">加载解析详情...</span>
+          <span className="text-sm">Loading...</span>
         </div>
       </div>
     )
@@ -205,39 +219,36 @@ export function PipelineView({ documentId }: PipelineViewProps) {
         <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
           <AlertCircle className="w-8 h-8 text-slate-300" />
         </div>
-        <p className="text-sm font-medium text-slate-500">未找到解析任务</p>
-        <p className="text-xs text-slate-400 mt-1 text-center">
-          该文件可能尚未开始解析<br />或解析任务已被删除
-        </p>
+        <p className="text-sm font-medium text-slate-500">RAG state not found</p>
       </div>
     )
   }
 
   return (
     <div className="h-full flex flex-col p-4 gap-4 overflow-auto">
-      {/* Document info header */}
       <div className="border-b border-slate-200 pb-4">
         <div className="flex items-start gap-3">
-          <FileText className={cn(
-            'w-6 h-6 shrink-0 mt-0.5',
-            task.status === 'completed' ? 'text-primary' :
-            task.status === 'failed' ? 'text-red-500' : 'text-slate-400'
-          )} />
+          <FileText
+            className={cn(
+              'w-6 h-6 shrink-0 mt-0.5',
+              task.status === 'completed' ? 'text-primary' : task.status === 'failed' ? 'text-red-500' : 'text-slate-400'
+            )}
+          />
           <div className="flex-1 min-w-0">
-            <h2 className="text-base font-semibold text-slate-800 truncate">
-              {task.documentName}
-            </h2>
+            <h2 className="text-base font-semibold text-slate-800 truncate">{task.documentName}</h2>
             <div className="flex items-center gap-2 mt-1">
               <Badge
                 variant={
-                  task.status === 'completed' ? 'success' :
-                  task.status === 'failed' ? 'destructive' :
-                  task.status === 'pending' ? 'secondary' : 'info'
+                  task.status === 'completed'
+                    ? 'success'
+                    : task.status === 'failed'
+                    ? 'destructive'
+                    : task.status === 'pending'
+                    ? 'secondary'
+                    : 'info'
                 }
               >
-                {task.status === 'completed' ? '解析完成' :
-                 task.status === 'failed' ? '解析失败' :
-                 task.status === 'pending' ? '待处理' : '解析中'}
+                {task.status}
               </Badge>
               <span className="text-xs text-slate-500">{task.progress}%</span>
             </div>
@@ -249,26 +260,20 @@ export function PipelineView({ documentId }: PipelineViewProps) {
             <div className="flex items-start gap-2">
               <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs font-medium text-red-700">错误信息</p>
+                <p className="text-xs font-medium text-red-700">Error</p>
                 <p className="text-xs text-red-600 mt-0.5">{task.error}</p>
               </div>
             </div>
-            <button
-              onClick={handleRetry}
-              className="mt-2 text-xs text-red-600 hover:text-red-700 flex items-center gap-1"
-            >
+            <button onClick={handleRetry} className="mt-2 text-xs text-red-600 hover:text-red-700 flex items-center gap-1">
               <RefreshCw className="w-3 h-3" />
-              重试解析
+              Retry
             </button>
           </div>
         )}
       </div>
 
-      {/* Pipeline stages */}
       <div>
-        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
-          解析流程
-        </h3>
+        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Pipeline</h3>
         <div className="space-y-2">
           {stages.map((stage, index) => (
             <StageCard
@@ -277,52 +282,31 @@ export function PipelineView({ documentId }: PipelineViewProps) {
               index={index}
               isActive={index === activeStageIndex}
               isCompleted={index < activeStageIndex}
-              isFailed={task?.status === 'failed' && index === activeStageIndex}
+              isFailed={task.status === 'failed' && index === activeStageIndex}
             />
           ))}
         </div>
       </div>
 
-      {/* Task details */}
       <div>
-        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
-          任务详情
-        </h3>
+        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Task Detail</h3>
         <div className="space-y-2">
-          <InfoRow
-            label="任务 ID"
-            value={task.id.slice(0, 8) + '...' + task.id.slice(-4)}
-            icon={Clock}
-          />
-          <InfoRow
-            label="创建时间"
-            value={new Date(task.createdAt).toLocaleString('zh-CN')}
-            icon={Clock}
-          />
-          {task.startedAt && (
-            <InfoRow
-              label="开始时间"
-              value={new Date(task.startedAt).toLocaleString('zh-CN')}
-              icon={Clock}
-            />
-          )}
-          {task.completedAt && (
-            <InfoRow
-              label="完成时间"
-              value={new Date(task.completedAt).toLocaleString('zh-CN')}
-              icon={CheckCircle2}
-            />
-          )}
+          <InfoRow label="Task ID" value={task.id} icon={Clock} />
+          <InfoRow label="Created At" value={new Date(task.createdAt).toLocaleString('zh-CN')} icon={Clock} />
+          {task.startedAt && <InfoRow label="Started At" value={new Date(task.startedAt).toLocaleString('zh-CN')} icon={Clock} />}
+          {task.completedAt && <InfoRow label="Completed At" value={new Date(task.completedAt).toLocaleString('zh-CN')} icon={CheckCircle2} />}
         </div>
       </div>
 
-      {/* Current stage description */}
       <div className="border-t border-slate-200 pt-4">
         <div className="flex items-center gap-2 text-xs text-slate-500">
           <Cpu className="w-4 h-4" />
-          <span>当前阶段：<span className="font-medium text-slate-700">{task.currentStage}</span></span>
+          <span>
+            Current Stage: <span className="font-medium text-slate-700">{task.currentStage}</span>
+          </span>
         </div>
       </div>
     </div>
   )
 }
+
