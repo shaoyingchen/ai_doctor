@@ -1,5 +1,6 @@
 import type { ChatMessage as ChatMessageType, SourceReference } from '@/types'
 import { cn } from '@/lib/cn'
+import { useChatStore } from '@/stores/chatStore'
 import { User, Bot, Copy, ThumbsUp, ThumbsDown, RotateCcw, Check, FileText, Database } from 'lucide-react'
 import { useState } from 'react'
 
@@ -17,15 +18,23 @@ function SourceCard({ source }: { source: SourceReference }) {
         <span>引用来源</span>
       </div>
       <div className="space-y-1.5 text-xs">
-        <div className="flex items-center gap-2 text-slate-600">
-          <span className="text-slate-400">知识库:</span>
-          <span>{source.knowledgeBase}</span>
-        </div>
+        {source.knowledgeBase && (
+          <div className="flex items-center gap-2 text-slate-600">
+            <span className="text-slate-400">知识库:</span>
+            <span>{source.knowledgeBase}</span>
+          </div>
+        )}
         <div className="flex items-center gap-2 text-slate-600">
           <FileText className="w-3 h-3 text-slate-400" />
           <span className="truncate">{source.document}</span>
           {source.location && <span className="text-slate-400">({source.location})</span>}
         </div>
+        {source.excerpt && (
+          <div className="flex items-start gap-2 text-slate-600">
+            <span className="text-slate-400 flex-shrink-0">摘要:</span>
+            <span className="line-clamp-2">{source.excerpt}</span>
+          </div>
+        )}
         <div className="flex items-center gap-2">
           <span className="text-slate-400">置信度:</span>
           <span className={cn(
@@ -48,6 +57,7 @@ function SourceCard({ source }: { source: SourceReference }) {
 
 export function ChatMessage({ message, className }: ChatMessageProps) {
   const [copied, setCopied] = useState(false)
+  const typingText = useChatStore((s) => s.typingText)
   const isUser = message.role === 'user'
 
   const handleCopy = async () => {
@@ -78,7 +88,16 @@ export function ChatMessage({ message, className }: ChatMessageProps) {
             ? "bg-primary text-white rounded-tr-md"
             : "bg-white border border-slate-100 text-slate-700 rounded-tl-md"
         )}>
-          <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
+          {message.isLoading && !message.content ? (
+            <div className="flex items-center gap-1.5 py-1">
+              <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+              <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              <span className="text-xs text-slate-400 ml-1">{typingText}</span>
+            </div>
+          ) : (
+            <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
+          )}
         </div>
 
         {/* Source Cards - Only for AI messages */}

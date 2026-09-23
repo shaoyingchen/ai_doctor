@@ -41,13 +41,28 @@ export interface ParseTask {
   id: string
   documentId: string
   documentName: string
-  status: 'pending' | 'uploading' | 'parsing' | 'chunking' | 'vectorizing' | 'completed' | 'failed'
+  status: 'pending' | 'uploading' | 'parsing' | 'chunking' | 'vectorizing' | 'waiting_review' | 'completed' | 'failed'
   progress: number
   currentStage: string
   error?: string
+  /** 等待人工审核时的审核原因（status === 'waiting_review' 时由后端给出） */
+  reviewReason?: string | null
   createdAt: string
   startedAt?: string
   completedAt?: string
+}
+
+/** 人工审核详情（GET /api/rag/review/{docId}） */
+export interface ReviewDetail {
+  docId: string
+  filename: string
+  reviewReason: string | null
+  parseScore: number | null
+  parseChunks: number | null
+  /** 解析结果预览（后端保证至多 3 段） */
+  previewChunks: string[]
+  pausedAtNode: string | null
+  createdAt: string
 }
 
 export interface ParseStage {
@@ -64,6 +79,8 @@ export interface ChatMessage {
   timestamp: string
   sources?: SourceReference[]
   verified?: boolean
+  /** 流式响应进行中（占位消息等待/接收 token） */
+  isLoading?: boolean
 }
 
 export interface SourceReference {
@@ -71,6 +88,12 @@ export interface SourceReference {
   document: string
   location: string
   confidence: number
+  /** RAG 检索扩展字段：文档 ID */
+  docId?: string
+  /** RAG 检索扩展字段：命中片段摘要 */
+  excerpt?: string
+  /** RAG 检索扩展字段：命中文档分块序号 */
+  chunkIndex?: number
 }
 
 // 搜索相关

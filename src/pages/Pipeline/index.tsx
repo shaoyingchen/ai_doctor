@@ -1,14 +1,22 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  Modal,
+  ModalContent,
+  ModalDescription,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+} from '@/components/ui/modal'
 import { cn } from '@/lib/cn'
 import {
   usePipelineStore,
   PIPELINE_STAGES,
   type PipelineStage,
 } from '@/stores/pipelineStore'
-import type { ParseTask, ParseStage } from '@/types'
+import type { ParseTask, ParseStage, ReviewDetail } from '@/types'
 import {
   Clock,
   Loader2,
@@ -21,7 +29,8 @@ import {
   Cpu,
   MemoryStick,
   RefreshCw,
-  ChevronRight
+  ChevronRight,
+  ClipboardCheck
 } from 'lucide-react'
 
 // Status card component
@@ -34,10 +43,11 @@ function StatusCard({
   title: string
   count: number
   icon: React.ReactNode
-  color: 'yellow' | 'blue' | 'green' | 'red'
+  color: 'yellow' | 'amber' | 'blue' | 'green' | 'red'
 }) {
   const colorClasses = {
     yellow: 'border-yellow-200 bg-yellow-50',
+    amber: 'border-amber-300 bg-amber-50',
     blue: 'border-blue-200 bg-blue-50',
     green: 'border-primary-200 bg-primary-50',
     red: 'border-red-200 bg-red-50',
@@ -45,6 +55,7 @@ function StatusCard({
 
   const iconColorClasses = {
     yellow: 'text-yellow-600 bg-yellow-100',
+    amber: 'text-amber-600 bg-amber-100',
     blue: 'text-blue-600 bg-blue-100',
     green: 'text-primary bg-primary-100',
     red: 'text-red-600 bg-red-100',
@@ -52,6 +63,7 @@ function StatusCard({
 
   const textColorClasses = {
     yellow: 'text-yellow-700',
+    amber: 'text-amber-700',
     blue: 'text-blue-700',
     green: 'text-primary',
     red: 'text-red-700',
@@ -179,11 +191,13 @@ function TaskCard({
   stages,
   onRetry,
   onCancel,
+  onReview,
 }: {
   task: ParseTask
   stages: ParseStage[]
   onRetry: () => void
   onCancel: () => void
+  onReview: () => void
 }) {
   const statusConfig: Record<string, { label: string; variant: 'warning' | 'info' | 'success' | 'destructive' | 'secondary' }> = {
     pending: { label: '待处理', variant: 'secondary' },
@@ -191,6 +205,7 @@ function TaskCard({
     parsing: { label: '解析中', variant: 'info' },
     chunking: { label: '分块中', variant: 'info' },
     vectorizing: { label: '向量化', variant: 'info' },
+    waiting_review: { label: '待审核', variant: 'warning' },
     completed: { label: '已完成', variant: 'success' },
     failed: { label: '失败', variant: 'destructive' },
   }
@@ -217,8 +232,19 @@ function TaskCard({
               {task.error}
             </div>
           )}
+          {task.status === 'waiting_review' && task.reviewReason && (
+            <div className="mt-2 p-2 bg-amber-50 rounded-lg text-xs text-amber-700">
+              审核原因：{task.reviewReason}
+            </div>
+          )}
         </div>
         <div className="flex gap-1.5">
+          {task.status === 'waiting_review' && (
+            <Button variant="outline" size="sm" onClick={onReview} className="text-xs h-7 border-amber-300 text-amber-700 hover:bg-amber-50 hover:text-amber-800">
+              <ClipboardCheck className="w-3 h-3 mr-1" />
+              审核
+            </Button>
+          )}
           {task.status === 'failed' && (
             <Button variant="outline" size="sm" onClick={onRetry} className="text-xs h-7">
               <RefreshCw className="w-3 h-3 mr-1" />
@@ -233,6 +259,160 @@ function TaskCard({
         </div>
       </div>
     </div>
+  )
+}
+
+// Review dialog component
+function ReviewDialog({
+  docId,
+  onClose,
+}: {
+  docId: string | null
+  onClose: () => void
+}) {
+  const { fetchReviewDetail, submitReview } = usePipelineStore()
+  const [detail, setDetail] = useState<ReviewDetail | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [notes, setNotes] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!docId) return
+    setDetail(null)
+    setLoadError(null)
+    setNotes('')
+    setSubmitting(false)
+    setSubmitError(null)
+    setLoading(true)
+    fetchReviewDetail(docId)
+      .then(setDetail)
+      .catch((error) =>
+        setLoadError(error instanceof Error ? error.message : '加载审核详情失败')
+      )
+      .finally(() => setLoading(false))
+  }, [docId, fetchReviewDetail])
+
+  const handleSubmit = async (action: 'approve' | 'reject') => {
+    if (!docId || submitting) return
+    setSubmitting(true)
+    setSubmitError(null)
+    try {
+      await submitReview(docId, action, notes.trim() || undefined)
+      onClose()
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : '提交失败，请重试')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const actionDisabled = submitting || loading || !detail
+
+  return (
+    <Modal
+      open={docId !== null}
+      onOpenChange={(open) => {
+        if (!open && !submitting) onClose()
+      }}
+    >
+      <ModalContent className="max-w-2xl">
+        <ModalHeader>
+          <ModalTitle>人工审核</ModalTitle>
+          <ModalDescription>
+            确认解析质量后选择通过或驳回：通过后任务继续执行，驳回后任务标记为失败。
+          </ModalDescription>
+        </ModalHeader>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-8 text-slate-400">
+            <Loader2 className="w-5 h-5 animate-spin mr-2" />
+            <span className="text-sm">加载审核详情…</span>
+          </div>
+        ) : loadError ? (
+          <div className="p-3 bg-red-50 rounded-lg text-sm text-red-600">{loadError}</div>
+        ) : detail ? (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+              <div className="flex items-center gap-2 text-slate-600 col-span-2">
+                <FileText className="w-3 h-3 text-slate-400" />
+                <span className="truncate font-medium">{detail.filename}</span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-600">
+                <span className="text-slate-400">审核原因:</span>
+                <span className="text-amber-700">{detail.reviewReason || '—'}</span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-600">
+                <span className="text-slate-400">解析评分:</span>
+                <span className="font-medium">
+                  {typeof detail.parseScore === 'number' ? detail.parseScore.toFixed(2) : '—'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-600">
+                <span className="text-slate-400">分块数量:</span>
+                <span className="font-medium">{detail.parseChunks ?? '—'}</span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-600">
+                <span className="text-slate-400">暂停节点:</span>
+                <span>{detail.pausedAtNode || '—'}</span>
+              </div>
+            </div>
+
+            {detail.previewChunks.length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-slate-500 mb-1.5">解析预览（前 {Math.min(detail.previewChunks.length, 3)} 段）</p>
+                <div className="space-y-1.5">
+                  {detail.previewChunks.slice(0, 3).map((chunk, index) => (
+                    <pre
+                      key={index}
+                      className="max-h-24 overflow-auto whitespace-pre-wrap rounded-lg border border-slate-100 bg-slate-50 p-2 font-mono text-xs text-slate-600"
+                    >
+                      {chunk}
+                    </pre>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div>
+              <p className="text-xs font-medium text-slate-500 mb-1.5">审核备注（可选，驳回时建议填写）</p>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                disabled={submitting}
+                placeholder="填写审核意见…"
+                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+
+            {submitError && (
+              <div className="p-2 bg-red-50 rounded-lg text-xs text-red-600">{submitError}</div>
+            )}
+          </div>
+        ) : null}
+
+        <ModalFooter>
+          <Button variant="outline" size="sm" onClick={onClose} disabled={submitting}>
+            取消
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => handleSubmit('reject')}
+            disabled={actionDisabled}
+          >
+            {submitting && <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />}
+            驳回
+          </Button>
+          <Button size="sm" onClick={() => handleSubmit('approve')} disabled={actionDisabled}>
+            {submitting && <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />}
+            通过
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
   )
 }
 
@@ -305,17 +485,27 @@ export default function Pipeline() {
   } = usePipelineStore()
 
   const filteredTasks = getFilteredTasks()
+  const [reviewDocId, setReviewDocId] = useState<string | null>(null)
 
-  // Poll for task progress every 2 seconds
+  // Poll for task progress - only when there are processing tasks
   useEffect(() => {
     // Initial fetch
     fetchTasks()
 
-    // Poll every 2 seconds
-    const interval = setInterval(fetchTasks, 2000)
+    // Only poll if there are processing tasks
+    const hasProcessingTasks = tasks.some(
+      (t) => t.status === 'parsing' || t.status === 'uploading' || t.status === 'chunking' || t.status === 'vectorizing'
+    )
+
+    if (!hasProcessingTasks) {
+      return // No interval needed
+    }
+
+    // Poll every 5 seconds (reduced from 2s to avoid overwhelming)
+    const interval = setInterval(fetchTasks, 5000)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [tasks.length, statusCounts.processing]) // Re-evaluate when task list or processing count changes
 
   // Calculate the current active stage index based on processing tasks
   const activeStageIndex = Math.max(
@@ -328,7 +518,7 @@ export default function Pipeline() {
   return (
     <div className="h-full flex flex-col p-4 gap-4 bg-white">
       {/* Top status cards */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-5 gap-3">
         <StatusCard
           title="待处理"
           count={statusCounts.pending}
@@ -340,6 +530,12 @@ export default function Pipeline() {
           count={statusCounts.processing}
           icon={<Loader2 className="w-5 h-5 animate-spin" />}
           color="blue"
+        />
+        <StatusCard
+          title="待审核"
+          count={statusCounts.waitingReview}
+          icon={<ClipboardCheck className="w-5 h-5" />}
+          color="amber"
         />
         <StatusCard
           title="已完成"
@@ -410,7 +606,7 @@ export default function Pipeline() {
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-semibold">任务列表</CardTitle>
               <div className="flex gap-1">
-                {(['all', 'pending', 'processing', 'completed', 'failed'] as const).map((filter) => (
+                {(['all', 'pending', 'processing', 'waiting_review', 'completed', 'failed'] as const).map((filter) => (
                   <Button
                     key={filter}
                     variant={statusFilter === filter ? 'default' : 'ghost'}
@@ -421,6 +617,7 @@ export default function Pipeline() {
                     {filter === 'all' && '全部'}
                     {filter === 'pending' && '待处理'}
                     {filter === 'processing' && '处理中'}
+                    {filter === 'waiting_review' && '待审核'}
                     {filter === 'completed' && '已完成'}
                     {filter === 'failed' && '失败'}
                   </Button>
@@ -443,6 +640,7 @@ export default function Pipeline() {
                     stages={calculateProgress(task)}
                     onRetry={() => retryTask(task.id)}
                     onCancel={() => cancelTask(task.id)}
+                    onReview={() => setReviewDocId(task.documentId)}
                   />
                 ))}
               </div>
@@ -450,6 +648,9 @@ export default function Pipeline() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Review dialog */}
+      <ReviewDialog docId={reviewDocId} onClose={() => setReviewDocId(null)} />
     </div>
   )
 }

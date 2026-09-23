@@ -256,10 +256,23 @@ export function FileTable() {
         // ignore polling error
       }
     }
+
+    // Initial fetch
     void poll()
-    const interval = setInterval(poll, 3000)
+
+    // Only poll if there are files in processing state
+    const hasProcessingFiles = files.some(
+      (f) => f.status === 'parsing' || f.status === 'pending'
+    )
+
+    if (!hasProcessingFiles) {
+      return // No interval needed
+    }
+
+    // Poll every 5 seconds (increased from 3s to reduce load)
+    const interval = setInterval(poll, 5000)
     return () => clearInterval(interval)
-  }, [])
+  }, [files.length, files.filter(f => f.status === 'parsing' || f.status === 'pending').length]) // Re-evaluate when processing files change
 
   const handleRefresh = async () => {
     setIsRefreshing(true)

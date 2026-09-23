@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { ParseTask, ParseStage } from '@/types'
+import type { ParseTask, ParseStage, ReviewDetail } from '@/types'
 import { API_BASE_WITH_PATH } from '@/config/api'
 
 export interface PipelineStage {
@@ -26,6 +26,7 @@ export interface ResourceUsage {
 export interface StatusCounts {
   pending: number
   processing: number
+  waitingReview: number
   completed: number
   failed: number
 }
@@ -34,10 +35,11 @@ interface RagStateItem {
   docId: string
   filename?: string
   updatedAt?: string
-  status?: 'pending' | 'parsing' | 'completed' | 'failed'
+  status?: 'pending' | 'parsing' | 'waiting_review' | 'completed' | 'failed'
   progress?: number
   currentStage?: string
   error?: string | null
+  reviewReason?: string | null
 }
 
 interface PipelineState {
@@ -45,17 +47,19 @@ interface PipelineState {
   statusCounts: StatusCounts
   currentProcessingDocument: string | null
   resourceUsage: ResourceUsage
-  statusFilter: 'all' | 'pending' | 'processing' | 'completed' | 'failed'
+  statusFilter: 'all' | 'pending' | 'processing' | 'waiting_review' | 'completed' | 'failed'
   parseEngine: 'mineru' | 'pymupdf' | 'paddle-ocr'
   chunkStrategy: 'smart' | 'fixed' | 'paragraph'
   vectorModel: 'bge-large' | 'text-embedding' | 'custom'
   fetchTasks: () => Promise<void>
+  fetchReviewDetail: (docId: string) => Promise<ReviewDetail>
+  submitReview: (docId: string, action: 'approve' | 'reject', notes?: string) => Promise<void>
   setTasks: (tasks: ParseTask[]) => void
   updateTask: (id: string, updates: Partial<ParseTask>) => void
   removeTask: (id: string) => void
   retryTask: (id: string) => Promise<void>
   cancelTask: (id: string) => void
-  setStatusFilter: (filter: 'all' | 'pending' | 'processing' | 'completed' | 'failed') => void
+  setStatusFilter: (filter: 'all' | 'pending' | 'processing' | 'waiting_review' | 'completed' | 'failed') => void
   setParseEngine: (engine: 'mineru' | 'pymupdf' | 'paddle-ocr') => void
   setChunkStrategy: (strategy: 'smart' | 'fixed' | 'paragraph') => void
   setVectorModel: (model: 'bge-large' | 'text-embedding' | 'custom') => void
@@ -66,6 +70,7 @@ interface PipelineState {
 const INITIAL_STATUS_COUNTS: StatusCounts = {
   pending: 0,
   processing: 0,
+  waitingReview: 0,
   completed: 0,
   failed: 0,
 }
@@ -87,6 +92,7 @@ function mapRagItemToTask(item: RagStateItem): ParseTask {
     progress: item.progress ?? 0,
     currentStage: item.currentStage || '待处理',
     error: item.error || undefined,
+    reviewReason: item.reviewReason ?? null,
     createdAt: now,
     startedAt: status === 'parsing' ? now : undefined,
     completedAt: status === 'completed' ? now : undefined,
@@ -115,6 +121,7 @@ export const usePipelineStore = create<PipelineState>((set, get) => ({
       const statusCounts: StatusCounts = {
         pending: fetchedTasks.filter((t) => t.status === 'pending').length,
         processing: fetchedTasks.filter((t) => t.status === 'parsing').length,
+        waitingReview: fetchedTasks.filter((t) => t.status === 'waiting_review').length,
         completed: fetchedTasks.filter((t) => t.status === 'completed').length,
         failed: fetchedTasks.filter((t) => t.status === 'failed').length,
       }
@@ -136,6 +143,40 @@ export const usePipelineStore = create<PipelineState>((set, get) => ({
     } catch (error) {
       console.error('[PipelineStore] fetchTasks failed:', error)
     }
+  },
+
+  // GET /api/rag/review/{docId}：无待审核内容时后端返回 404
+  fetchReviewDetail: async (docId) => {
+    const response = await fetch(API_BASE_WITH_PATH(`/api/rag/review/${docId}`))
+    if (response.status === 404) {
+      throw new Error('该文档当前无待审核内容（可能已被处理）')
+    }
+    if (!response.ok) {
+      throw new Error(`获取审核详情失败（HTTP ${response.status}）`)
+    }
+    return (await response.json()) as ReviewDetail
+  },
+
+  // POST /api/rag/review/{docId}：approve 后任务从 parsing 继续，reject 后标记 failed
+  submitReview: async (docId, action, notes) => {
+    const response = await fetch(API_BASE_WITH_PATH(`/api/rag/review/${docId}`), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(notes ? { action, notes } : { action }),
+    })
+    if (!response.ok) {
+      let message = `提交审核结果失败（HTTP ${response.status}）`
+      try {
+        const data = (await response.json()) as { message?: unknown }
+        if (typeof data.message === 'string' && data.message) {
+          message = data.message
+        }
+      } catch {
+        // 读取错误体失败时保留默认提示
+      }
+      throw new Error(message)
+    }
+    await get().fetchTasks()
   },
 
   setTasks: (tasks) => set({ tasks }),

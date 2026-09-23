@@ -1,3 +1,4 @@
+import React from 'react'
 import type { EnhanceTab } from '@/stores/enhanceStore'
 import { useEnhanceStore } from '@/stores/enhanceStore'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -52,7 +53,12 @@ const SourceIcon = () => (
 
 // Left Panel - Task Management
 function TaskManagementPanel() {
-  const { sourceDocuments, selectedDocument, setSelectedDocument, datasets, qualityMetrics } = useEnhanceStore()
+  const { sourceDocuments, selectedDocument, setSelectedDocument, datasets, qualityMetrics, loadDocuments, loading } = useEnhanceStore()
+
+  // Load documents on mount
+  React.useEffect(() => {
+    loadDocuments()
+  }, [])
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -99,8 +105,11 @@ function TaskManagementPanel() {
           </CardTitle>
         </CardHeader>
         <CardContent className="overflow-auto max-h-[calc(50vh-120px)]">
-          <div className="space-y-2">
-            {sourceDocuments.map((doc) => (
+          {loading && sourceDocuments.length === 0 ? (
+            <div className="text-center py-8 text-slate-500">加载中...</div>
+          ) : (
+            <div className="space-y-2">
+              {sourceDocuments.map((doc) => (
               <div
                 key={doc.id}
                 onClick={() => setSelectedDocument(selectedDocument === doc.id ? null : doc.id)}
@@ -121,7 +130,8 @@ function TaskManagementPanel() {
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -254,7 +264,22 @@ function QACard({ qa, isSelected, onClick }: { qa: QA; isSelected: boolean; onCl
 
 // QA Tab Content
 function QAContent() {
-  const { qaList, selectedQA, setSelectedQA, searchQuery, setSearchQuery, filterStatus, setFilterStatus, generateQA } = useEnhanceStore()
+  const { qaList, selectedQA, setSelectedQA, searchQuery, setSearchQuery, filterStatus, setFilterStatus, generateQA, loadQAPairs, selectedDocument, loading, error } = useEnhanceStore()
+
+  // Load QA pairs when document selection changes
+  React.useEffect(() => {
+    if (selectedDocument) {
+      loadQAPairs(selectedDocument)
+    }
+  }, [selectedDocument])
+
+  const handleGenerateQA = async () => {
+    if (!selectedDocument) {
+      alert('请先选择一个文档')
+      return
+    }
+    await generateQA()
+  }
 
   const filteredQA = qaList.filter((qa) => {
     const matchesSearch = qa.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -285,26 +310,36 @@ function QAContent() {
           <option value="approved">已通过</option>
           <option value="rejected">已驳回</option>
         </select>
-        <Button onClick={generateQA}>
+        <Button onClick={handleGenerateQA} disabled={loading || !selectedDocument}>
           <PlusIcon />
-          <span className="ml-1">生成QA</span>
+          <span className="ml-1">{loading ? '生成中...' : '生成QA'}</span>
         </Button>
       </div>
 
+      {/* Error message */}
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          {error}
+        </div>
+      )}
+
       {/* QA List */}
       <div className="flex-1 overflow-auto space-y-3">
-        {filteredQA.map((qa) => (
+        {loading && qaList.length === 0 ? (
+          <div className="text-center py-8 text-slate-500">加载中...</div>
+        ) : filteredQA.length === 0 ? (
+          <div className="text-center py-8 text-slate-500">
+            {selectedDocument ? '暂无匹配的问答对' : '请先选择一个文档'}
+          </div>
+        ) : (
+          filteredQA.map((qa) => (
           <QACard
             key={qa.id}
             qa={qa}
             isSelected={selectedQA?.id === qa.id}
             onClick={() => setSelectedQA(selectedQA?.id === qa.id ? null : qa)}
           />
-        ))}
-        {filteredQA.length === 0 && (
-          <div className="text-center py-8 text-slate-500">
-            暂无匹配的问答对
-          </div>
+          ))
         )}
       </div>
     </div>
@@ -313,10 +348,51 @@ function QAContent() {
 
 // Generalize Tab Content
 function GeneralizeContent() {
-  const { generalizeList } = useEnhanceStore()
+  const { generalizeList, generalizeQuestion, loading } = useEnhanceStore()
+  const [question, setQuestion] = React.useState('')
+  const [variations, setVariations] = React.useState<string[]>([])
+
+  const handleGeneralize = async () => {
+    if (!question.trim()) {
+      alert('请输入问题')
+      return
+    }
+    const result = await generalizeQuestion(question)
+    setVariations(result)
+  }
 
   return (
     <div className="space-y-4">
+      {/* Input area */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-slate-700">输入问题</label>
+            <Input
+              placeholder="输入需要生成变体的问题..."
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+            />
+            <Button onClick={handleGeneralize} disabled={loading || !question.trim()}>
+              {loading ? '生成中...' : '生成变体'}
+            </Button>
+          </div>
+          {variations.length > 0 && (
+            <div className="mt-4">
+              <div className="text-sm text-slate-600 mb-2">生成的变体：</div>
+              <div className="flex flex-wrap gap-2">
+                {variations.map((v, i) => (
+                  <span key={i} className="px-3 py-1 text-sm bg-green-50 text-green-700 rounded-full border border-green-200">
+                    {v}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Existing generalized items */}
       {generalizeList.map((item) => (
         <Card key={item.id} hover>
           <CardContent className="p-4">

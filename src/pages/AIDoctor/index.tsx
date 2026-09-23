@@ -7,7 +7,6 @@ import { ChatInput } from './ChatInput'
 import { SidePanel } from './SidePanel'
 import { useChatStore } from '@/stores/chatStore'
 import type { ChatMode } from '@/stores/chatStore'
-import type { SourceReference } from '@/types'
 import {
   Plus,
   History,
@@ -37,134 +36,24 @@ const modeConfig: Record<ChatMode, { label: string; icon: React.ReactNode; descr
   }
 }
 
-// Mock AI response generator
-const generateMockResponse = (message: string, mode: ChatMode): { content: string; sources?: SourceReference[] } => {
-  const responses: Record<ChatMode, { content: string; sources?: SourceReference[] }> = {
-    qa: {
-      content: `根据您的问题"${message.slice(0, 30)}..."，我在知识库中找到了相关信息：
-
-根据《数字化转型指南》第三章节的规定，企业进行数字化转型时应当遵循以下原则：
-
-1. 战略先行：制定清晰的数字化转型战略
-2. 循序渐进：从易到难，逐步推进
-3. 数据驱动：建立完善的数据治理体系
-4. 全员参与：培养数字化人才队伍
-
-以上内容仅供参考，如需更详细的信息，建议查阅原文档。`,
-      sources: [
-        {
-          knowledgeBase: '公共政策库',
-          document: '2024数字化转型指南.pdf',
-          location: '第12-15段',
-          confidence: 0.98
-        },
-        {
-          knowledgeBase: '国家标准规范',
-          document: '企业数字化能力评估标准.docx',
-          location: '第3.2节',
-          confidence: 0.92
-        }
-      ]
-    },
-    create: {
-      content: `我已根据您的要求生成了以下内容：
-
-## 关于${message.slice(0, 20)}的工作方案
-
-### 一、背景与目标
-
-根据当前形势发展需要，特制定本工作方案。主要目标如下：
-
-1. 完善制度建设，建立健全工作机制
-2. 加强统筹协调，形成工作合力
-3. 强化监督考核，确保落实见效
-
-### 二、主要任务
-
-（一）组织领导方面
-
-成立专项工作领导小组，明确责任分工，定期召开工作推进会议。
-
-（二）具体措施方面
-
-制定详细实施计划，明确时间节点和责任人，建立台账管理制度。
-
-### 三、保障措施
-
-加强经费保障，强化人员配备，完善激励约束机制。
-
----
-
-如需调整内容或补充细节，请告诉我。`,
-      sources: [
-        {
-          knowledgeBase: '部门文档',
-          document: '工作规范模板库',
-          location: '公文模板-工作方案类',
-          confidence: 0.95
-        }
-      ]
-    },
-    analyze: {
-      content: `## 数据分析报告
-
-基于您提供的内容"${message.slice(0, 30)}..."，以下是分析结果：
-
-### 核心要点分析
-
-1. **关键指标趋势**
-   - 本季度数据呈现上升趋势
-   - 同比增长15.3%，环比增长8.7%
-
-2. **主要发现**
-   - 核心业务指标稳定增长
-   - 新业务板块发展迅速
-   - 用户满意度持续提升
-
-### 对比分析
-
-| 指标 | 本期 | 上期 | 变化 |
-|------|------|------|------|
-| 访问量 | 12.5万 | 10.8万 | +15.7% |
-| 活跃用户 | 3.2万 | 2.9万 | +10.3% |
-| 转化率 | 8.5% | 7.2% | +1.3pp |
-
-### 建议与改进方向
-
-1. 继续优化核心功能体验
-2. 加强用户运营策略
-3. 持续监控关键指标变化
-
----
-
-如需深入分析某个维度，请告诉我。`,
-      sources: [
-        {
-          knowledgeBase: '公共政策库',
-          document: '数据分析方法论.pdf',
-          location: '第4章-对比分析',
-          confidence: 0.88
-        }
-      ]
-    }
-  }
-
-  return responses[mode]
-}
-
 export default function AIDoctor() {
   const {
     mode,
     setMode,
     messages,
-    addMessage,
     isTyping,
-    setTyping,
     newChat,
+    sendMessage,
+    loadKnowledgeBases,
   } = useChatStore()
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [showHistory, setShowHistory] = useState(false)
+
+  // Load knowledge bases from backend on mount
+  useEffect(() => {
+    loadKnowledgeBases()
+  }, [loadKnowledgeBases])
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -174,30 +63,11 @@ export default function AIDoctor() {
   const handleSendMessage = async (content: string, attachments?: File[]) => {
     if (!content.trim() && (!attachments || attachments.length === 0)) return
 
-    // Add user message
-    addMessage({
-      role: 'user',
-      content: attachments && attachments.length > 0
-        ? `${content}\n\n[附件: ${attachments.map(f => f.name).join(', ')}]`
-        : content
-    })
+    const message = attachments && attachments.length > 0
+      ? `${content}\n\n[附件: ${attachments.map(f => f.name).join(', ')}]`
+      : content
 
-    // Simulate AI response
-    setTyping(true)
-
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1500))
-
-    const response = generateMockResponse(content, mode)
-
-    addMessage({
-      role: 'assistant',
-      content: response.content,
-      sources: response.sources,
-      verified: response.sources?.every(s => s.confidence >= 0.9) ?? false
-    })
-
-    setTyping(false)
+    await sendMessage(message)
   }
 
   const handleExport = () => {
@@ -222,7 +92,7 @@ export default function AIDoctor() {
               <Bot className="w-4 h-4" />
             </div>
             <h1 className="text-lg font-semibold text-slate-800">AI博士对话</h1>
-            <Badge variant="outlinePrimary" className="text-[10px]">GPT-4</Badge>
+            <Badge variant="outlinePrimary" className="text-[10px]">RAG 助手</Badge>
           </div>
 
           <div className="flex items-center gap-1.5">
@@ -319,19 +189,6 @@ export default function AIDoctor() {
               {messages.map((message) => (
                 <ChatMessage key={message.id} message={message} />
               ))}
-              {isTyping && (
-                <div className="flex items-center gap-3 py-4 px-6">
-                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                    <Bot className="w-4 h-4 text-slate-500" />
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                  </div>
-                  <span className="text-sm text-slate-400">AI正在思考...</span>
-                </div>
-              )}
               <div ref={messagesEndRef} />
             </div>
           )}

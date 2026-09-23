@@ -180,10 +180,18 @@ export function PipelineView({ documentId }: PipelineViewProps) {
   }
 
   useEffect(() => {
+    // Initial fetch
     void fetchTask()
-    const interval = setInterval(() => void fetchTask(), 2000)
+
+    // Only poll if task is in processing state
+    if (!task || task.status === 'completed' || task.status === 'failed') {
+      return // No interval needed for completed/failed tasks
+    }
+
+    // Poll every 5 seconds (reduced from 2s to avoid performance issues)
+    const interval = setInterval(() => void fetchTask(), 5000)
     return () => clearInterval(interval)
-  }, [documentId])
+  }, [documentId, task?.status]) // Re-evaluate when document or task status changes
 
   const stages = task ? calculateStages(task.progress) : []
   const activeStageIndex =
