@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import type { QA } from '@/types'
+import { enhanceService } from '@/services/enhanceService'
+import { API_BASE_URL } from '@/config/api'
 
 export type EnhanceTab = 'qa' | 'generalize' | 'decompose' | 'dataset'
 
@@ -79,6 +81,8 @@ interface EnhanceState {
   // UI state
   searchQuery: string
   filterStatus: 'all' | 'pending' | 'approved' | 'rejected'
+  loading: boolean
+  error: string | null
 
   // Actions
   setActiveTab: (tab: EnhanceTab) => void
@@ -86,13 +90,15 @@ interface EnhanceState {
   setSelectedQA: (qa: QA | null) => void
   setSearchQuery: (query: string) => void
   setFilterStatus: (status: 'all' | 'pending' | 'approved' | 'rejected') => void
-  approveQA: (qaId: string) => void
-  rejectQA: (qaId: string) => void
+  approveQA: (qaId: string) => Promise<void>
+  rejectQA: (qaId: string) => Promise<void>
   updateConfig: (config: Partial<GenerationConfig>) => void
-  generateQA: () => void
+  generateQA: () => Promise<void>
+  loadDocuments: () => Promise<void>
+  loadQAPairs: (docId?: string) => Promise<void>
+  generalizeQuestion: (question: string) => Promise<string[]>
+  setLoading: (loading: boolean) => void
 }
-
-const generateId = () => Math.random().toString(36).substring(2, 9)
 
 // Mock data
 const mockSourceDocuments: SourceDocument[] = [
@@ -218,7 +224,7 @@ const defaultMetrics: QualityMetrics = {
   coverageRate: 0.78,
 }
 
-export const useEnhanceStore = create<EnhanceState>((set) => ({
+export const useEnhanceStore = create<EnhanceState>((set, get) => ({
   // Initial state
   activeTab: 'qa',
   sourceDocuments: mockSourceDocuments,
@@ -232,6 +238,8 @@ export const useEnhanceStore = create<EnhanceState>((set) => ({
   qualityMetrics: defaultMetrics,
   searchQuery: '',
   filterStatus: 'all',
+  loading: false,
+  error: null,
 
   // Actions
   setActiveTab: (tab) => set({ activeTab: tab }),
@@ -244,29 +252,43 @@ export const useEnhanceStore = create<EnhanceState>((set) => ({
 
   setFilterStatus: (status) => set({ filterStatus: status }),
 
-  approveQA: (qaId) => {
-    set((state) => ({
-      qaList: state.qaList.map((qa) =>
-        qa.id === qaId ? { ...qa, status: 'approved' as const } : qa
-      ),
-      qualityMetrics: {
-        ...state.qualityMetrics,
-        approvedQA: state.qualityMetrics.approvedQA + 1,
-        pendingQA: state.qualityMetrics.pendingQA - 1,
-      },
-    }))
+  setLoading: (loading) => set({ loading }),
+
+  approveQA: async (qaId) => {
+    try {
+      await enhanceService.approveQA(qaId)
+      set((state) => ({
+        qaList: state.qaList.map((qa) =>
+          qa.id === qaId ? { ...qa, status: 'approved' as const } : qa
+        ),
+        qualityMetrics: {
+          ...state.qualityMetrics,
+          approvedQA: state.qualityMetrics.approvedQA + 1,
+          pendingQA: Math.max(0, state.qualityMetrics.pendingQA - 1),
+        },
+      }))
+    } catch (error) {
+      console.error('Failed to approve QA:', error)
+      set({ error: error instanceof Error ? error.message : 'Failed to approve QA' })
+    }
   },
 
-  rejectQA: (qaId) => {
-    set((state) => ({
-      qaList: state.qaList.map((qa) =>
-        qa.id === qaId ? { ...qa, status: 'rejected' as const } : qa
-      ),
-      qualityMetrics: {
-        ...state.qualityMetrics,
-        pendingQA: state.qualityMetrics.pendingQA - 1,
-      },
-    }))
+  rejectQA: async (qaId) => {
+    try {
+      await enhanceService.rejectQA(qaId)
+      set((state) => ({
+        qaList: state.qaList.map((qa) =>
+          qa.id === qaId ? { ...qa, status: 'rejected' as const } : qa
+        ),
+        qualityMetrics: {
+          ...state.qualityMetrics,
+          pendingQA: Math.max(0, state.qualityMetrics.pendingQA - 1),
+        },
+      }))
+    } catch (error) {
+      console.error('Failed to reject QA:', error)
+      set({ error: error instanceof Error ? error.message : 'Failed to reject QA' })
+    }
   },
 
   updateConfig: (config) => {
@@ -275,26 +297,103 @@ export const useEnhanceStore = create<EnhanceState>((set) => ({
     }))
   },
 
-  generateQA: () => {
-    // Simulate generating new QA pairs
-    const newQA: QA = {
-      id: generateId(),
-      question: '新生成的示例问题？',
-      answer: '这是自动生成的示例答案，用于演示QA生成功能。',
-      sourceDocument: '示例文档.pdf',
-      sourceLocation: '自动生成',
-      confidence: 0.85,
-      status: 'pending',
-      variations: [],
-      createdAt: new Date().toISOString(),
+  generateQA: async () => {
+    const { selectedDocument, generationConfig } = get()
+    if (!selectedDocument) {
+      set({ error: 'Please select a document first' })
+      return
     }
-    set((state) => ({
-      qaList: [newQA, ...state.qaList],
-      qualityMetrics: {
-        ...state.qualityMetrics,
-        totalQA: state.qualityMetrics.totalQA + 1,
-        pendingQA: state.qualityMetrics.pendingQA + 1,
-      },
-    }))
+
+    set({ loading: true, error: null })
+    try {
+      const response = await enhanceService.generateQA(selectedDocument, generationConfig)
+      set((state) => ({
+        qaList: [...response.qaPairs, ...state.qaList],
+        qualityMetrics: {
+          ...state.qualityMetrics,
+          totalQA: state.qualityMetrics.totalQA + response.totalGenerated,
+          pendingQA: state.qualityMetrics.pendingQA + response.totalGenerated,
+        },
+        loading: false,
+      }))
+    } catch (error) {
+      console.error('Failed to generate QA:', error)
+      set({
+        error: error instanceof Error ? error.message : 'Failed to generate QA',
+        loading: false,
+      })
+    }
+  },
+
+  loadDocuments: async () => {
+    set({ loading: true, error: null })
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/documents`)
+      if (!response.ok) throw new Error('Failed to load documents')
+
+      const data = await response.json()
+      const documents = data.documents || []
+
+      // Transform to SourceDocument format
+      const sourceDocuments = documents.map((doc: any) => ({
+        id: doc.id,
+        name: doc.name,
+        qaCount: doc.vectors || 0,
+        generalizeCount: 0,
+        decomposeCount: 0,
+        status: doc.status === 'parsed' ? 'completed' : doc.status === 'parsing' ? 'processing' : 'pending',
+      }))
+
+      set({ sourceDocuments, loading: false })
+    } catch (error) {
+      console.error('Failed to load documents:', error)
+      set({
+        error: error instanceof Error ? error.message : 'Failed to load documents',
+        loading: false,
+      })
+    }
+  },
+
+  loadQAPairs: async (docId) => {
+    set({ loading: true, error: null })
+    try {
+      const response = docId
+        ? await enhanceService.getQAPairs(docId)
+        : await enhanceService.getAllQAPairs()
+
+      set({
+        qaList: response.qaPairs,
+        qualityMetrics: {
+          totalQA: response.total,
+          approvedQA: response.qaPairs.filter(qa => qa.status === 'approved').length,
+          pendingQA: response.qaPairs.filter(qa => qa.status === 'pending').length,
+          avgConfidence: response.qaPairs.reduce((sum, qa) => sum + qa.confidence, 0) / (response.total || 1),
+          coverageRate: 0.78,
+        },
+        loading: false,
+      })
+    } catch (error) {
+      console.error('Failed to load QA pairs:', error)
+      set({
+        error: error instanceof Error ? error.message : 'Failed to load QA pairs',
+        loading: false,
+      })
+    }
+  },
+
+  generalizeQuestion: async (question) => {
+    set({ loading: true, error: null })
+    try {
+      const response = await enhanceService.generalizeQuestion(question)
+      set({ loading: false })
+      return response.variations
+    } catch (error) {
+      console.error('Failed to generalize question:', error)
+      set({
+        error: error instanceof Error ? error.message : 'Failed to generalize question',
+        loading: false,
+      })
+      return []
+    }
   },
 }))

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { AnnotationTask, AutoAnnotation, ManualAnnotation, NLPAnnotationResult, EntityAnnotation, KeywordAnnotation, CategoryAnnotation } from '@/types'
-import { API_BASE_WITH_PATH } from '@/config/api'
+import { AnnotationService } from '@/services/annotationService'
 
 export type AnnotationStatus = 'pending' | 'in_progress' | 'approved' | 'rejected'
 export type AnnotationType = 'category' | 'entity' | 'keyword'
@@ -60,13 +60,15 @@ interface AnnotationState {
   addManualAnnotation: (annotation: Omit<ManualAnnotation, 'verified'>) => void
   removeManualAnnotation: (index: number) => void
   verifyAnnotation: (index: number, verified: boolean) => void
-  approveTask: (taskId: string) => void
-  rejectTask: (taskId: string, reason?: string) => void
-  batchApprove: (taskIds: string[]) => void
-  batchReject: (taskIds: string[]) => void
+  approveTask: (taskId: string) => Promise<void>
+  rejectTask: (taskId: string, reason?: string) => Promise<void>
+  batchApprove: (taskIds: string[]) => Promise<void>
+  batchReject: (taskIds: string[]) => Promise<void>
   toggleShowAutoAnnotations: () => void
   setActiveAnnotationType: (type: AnnotationType) => void
   resetAnnotations: () => void
+  fetchTasks: () => Promise<void>
+  saveCurrentAnnotations: () => Promise<void>
 
   // Auto annotation
   autoAnnotateDocument: (content: string, documentName?: string) => Promise<NLPAnnotationResult | null>
@@ -326,106 +328,161 @@ export const useAnnotationStore = create<AnnotationState>((set, get) => ({
     set({ manualAnnotations: updated })
   },
 
-  approveTask: (taskId) => {
+  approveTask: async (taskId) => {
     const { tasks, manualAnnotations } = get()
-    const updatedTasks = tasks.map(t =>
-      t.id === taskId
-        ? {
-            ...t,
-            status: 'approved' as const,
-            reviewedAt: new Date().toISOString(),
-            reviewer: '张三', // In real app, use current user
-            manualAnnotations: [...manualAnnotations]
-          }
-        : t
-    )
-    set({
-      tasks: updatedTasks,
-      stats: calculateStats(updatedTasks),
-      filteredTasks: get().filteredTasks.map(t =>
+
+    try {
+      // Save annotations before approving
+      const task = tasks.find(t => t.id === taskId)
+      if (task) {
+        const categories = manualAnnotations.filter(a => a.type === 'category').map(a => a.value)
+        const entities = manualAnnotations
+          .filter(a => a.type === 'entity')
+          .map(a => {
+            const [type, value] = a.value.split(':')
+            return { type, value }
+          })
+        const keywords = manualAnnotations.filter(a => a.type === 'keyword').map(a => a.value)
+
+        await AnnotationService.saveAnnotation(taskId, { categories, entities, keywords })
+      }
+
+      // Approve the task
+      await AnnotationService.approveTask(taskId)
+
+      // Update local state
+      const updatedTasks = tasks.map(t =>
         t.id === taskId
-          ? { ...t, status: 'approved' as const, reviewedAt: new Date().toISOString() }
+          ? {
+              ...t,
+              status: 'approved' as const,
+              reviewedAt: new Date().toISOString(),
+              reviewer: '张三', // In real app, use current user
+              manualAnnotations: [...manualAnnotations]
+            }
           : t
-      ),
-      selectedTaskId: null,
-      currentDocument: null,
-      autoAnnotations: [],
-      manualAnnotations: [],
-    })
+      )
+      set({
+        tasks: updatedTasks,
+        stats: calculateStats(updatedTasks),
+        filteredTasks: get().filteredTasks.map(t =>
+          t.id === taskId
+            ? { ...t, status: 'approved' as const, reviewedAt: new Date().toISOString() }
+            : t
+        ),
+        selectedTaskId: null,
+        currentDocument: null,
+        autoAnnotations: [],
+        manualAnnotations: [],
+      })
+    } catch (error) {
+      console.error('Failed to approve task:', error)
+      throw error
+    }
   },
 
-  rejectTask: (taskId, _reason) => {
+  rejectTask: async (taskId, reason = '标注质量不符合要求') => {
     const { tasks, manualAnnotations } = get()
-    const updatedTasks = tasks.map(t =>
-      t.id === taskId
-        ? {
-            ...t,
-            status: 'rejected' as const,
-            reviewedAt: new Date().toISOString(),
-            reviewer: '张三',
-            manualAnnotations: [...manualAnnotations]
-          }
-        : t
-    )
-    set({
-      tasks: updatedTasks,
-      stats: calculateStats(updatedTasks),
-      filteredTasks: get().filteredTasks.map(t =>
+
+    try {
+      // Reject the task via API
+      await AnnotationService.rejectTask(taskId, { reason })
+
+      // Update local state
+      const updatedTasks = tasks.map(t =>
         t.id === taskId
-          ? { ...t, status: 'rejected' as const, reviewedAt: new Date().toISOString() }
+          ? {
+              ...t,
+              status: 'rejected' as const,
+              reviewedAt: new Date().toISOString(),
+              reviewer: '张三',
+              manualAnnotations: [...manualAnnotations]
+            }
           : t
-      ),
-      selectedTaskId: null,
-      currentDocument: null,
-      autoAnnotations: [],
-      manualAnnotations: [],
-    })
+      )
+      set({
+        tasks: updatedTasks,
+        stats: calculateStats(updatedTasks),
+        filteredTasks: get().filteredTasks.map(t =>
+          t.id === taskId
+            ? { ...t, status: 'rejected' as const, reviewedAt: new Date().toISOString() }
+            : t
+        ),
+        selectedTaskId: null,
+        currentDocument: null,
+        autoAnnotations: [],
+        manualAnnotations: [],
+      })
+    } catch (error) {
+      console.error('Failed to reject task:', error)
+      throw error
+    }
   },
 
-  batchApprove: (taskIds) => {
+  batchApprove: async (taskIds) => {
     const { tasks } = get()
-    const updatedTasks = tasks.map(t =>
-      taskIds.includes(t.id)
-        ? {
-            ...t,
-            status: 'approved' as const,
-            reviewedAt: new Date().toISOString(),
-            reviewer: '张三'
-          }
-        : t
-    )
-    set({
-      tasks: updatedTasks,
-      stats: calculateStats(updatedTasks),
-      filteredTasks: get().filteredTasks.map(t =>
+
+    try {
+      // Batch approve via API
+      await AnnotationService.batchApprove(taskIds)
+
+      // Update local state
+      const updatedTasks = tasks.map(t =>
         taskIds.includes(t.id)
-          ? { ...t, status: 'approved' as const, reviewedAt: new Date().toISOString() }
+          ? {
+              ...t,
+              status: 'approved' as const,
+              reviewedAt: new Date().toISOString(),
+              reviewer: '张三'
+            }
           : t
-      ),
-    })
+      )
+      set({
+        tasks: updatedTasks,
+        stats: calculateStats(updatedTasks),
+        filteredTasks: get().filteredTasks.map(t =>
+          taskIds.includes(t.id)
+            ? { ...t, status: 'approved' as const, reviewedAt: new Date().toISOString() }
+            : t
+        ),
+      })
+    } catch (error) {
+      console.error('Failed to batch approve tasks:', error)
+      throw error
+    }
   },
 
-  batchReject: (taskIds) => {
+  batchReject: async (taskIds) => {
     const { tasks } = get()
-    const updatedTasks = tasks.map(t =>
-      taskIds.includes(t.id)
-        ? {
-            ...t,
-            status: 'rejected' as const,
-            reviewedAt: new Date().toISOString(),
-            reviewer: '张三'
-          }
-        : t
-    )
-    set({
-      tasks: updatedTasks,
-      stats: calculateStats(updatedTasks),
-      filteredTasks: get().filteredTasks.map(t =>
+
+    try {
+      // Batch reject via API
+      await AnnotationService.batchReject(taskIds, '批量驳回')
+
+      // Update local state
+      const updatedTasks = tasks.map(t =>
         taskIds.includes(t.id)
-          ? { ...t, status: 'rejected' as const, reviewedAt: new Date().toISOString() }
+          ? {
+              ...t,
+              status: 'rejected' as const,
+              reviewedAt: new Date().toISOString(),
+              reviewer: '张三'
+            }
           : t
-      ),
-    })
+      )
+      set({
+        tasks: updatedTasks,
+        stats: calculateStats(updatedTasks),
+        filteredTasks: get().filteredTasks.map(t =>
+          taskIds.includes(t.id)
+            ? { ...t, status: 'rejected' as const, reviewedAt: new Date().toISOString() }
+            : t
+        ),
+      })
+    } catch (error) {
+      console.error('Failed to batch reject tasks:', error)
+      throw error
+    }
   },
 
   toggleShowAutoAnnotations: () => {
@@ -447,21 +504,10 @@ export const useAnnotationStore = create<AnnotationState>((set, get) => ({
   },
 
   // Auto annotate document using NLP service
-  autoAnnotateDocument: async (content, documentName) => {
+  autoAnnotateDocument: async (content, _documentName) => {
     try {
-      const response = await fetch(API_BASE_WITH_PATH('/api/annotate'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ content, documentName }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Annotation service error')
-      }
-
-      const result: NLPAnnotationResult = await response.json()
+      // Use AnnotationService to make the API call
+      const result = await AnnotationService.autoAnnotate('temp-doc-id', content)
       return result
     } catch (error) {
       console.error('Auto annotation failed:', error)
@@ -474,44 +520,107 @@ export const useAnnotationStore = create<AnnotationState>((set, get) => ({
     const task = get().tasks.find(t => t.id === taskId)
     if (!task) return
 
-    const result = await get().autoAnnotateDocument(content, task.documentName)
-    if (!result || !result.success) return
+    set({ isAnnotating: true })
 
-    // Convert NLP result to AutoAnnotation format
-    const autoAnnotations: AutoAnnotation[] = []
+    try {
+      const result = await get().autoAnnotateDocument(content, task.documentName)
+      if (!result || !result.success) {
+        set({ isAnnotating: false })
+        return
+      }
 
-    // Add entities
-    result.entities.forEach((entity: EntityAnnotation) => {
-      autoAnnotations.push({
-        type: 'entity',
-        value: entity.value,
-        confidence: entity.confidence,
-        location: entity.type,
+      // Convert NLP result to AutoAnnotation format
+      const autoAnnotations: AutoAnnotation[] = []
+
+      // Add entities
+      result.entities.forEach((entity: EntityAnnotation) => {
+        autoAnnotations.push({
+          type: 'entity',
+          value: entity.value,
+          confidence: entity.confidence,
+          location: entity.type,
+        })
       })
-    })
 
-    // Add keywords
-    result.keywords.forEach((keyword: KeywordAnnotation) => {
-      autoAnnotations.push({
-        type: 'keyword',
-        value: keyword.keyword,
-        confidence: keyword.confidence,
+      // Add keywords
+      result.keywords.forEach((keyword: KeywordAnnotation) => {
+        autoAnnotations.push({
+          type: 'keyword',
+          value: keyword.keyword,
+          confidence: keyword.confidence,
+        })
       })
-    })
 
-    // Add categories
-    result.categories.forEach((category: CategoryAnnotation) => {
-      autoAnnotations.push({
-        type: 'category',
-        value: category.category,
-        confidence: category.confidence,
+      // Add categories
+      result.categories.forEach((category: CategoryAnnotation) => {
+        autoAnnotations.push({
+          type: 'category',
+          value: category.category,
+          confidence: category.confidence,
+        })
       })
-    })
 
-    // Update task with auto annotations
-    const updatedTasks = get().tasks.map(t =>
-      t.id === taskId ? { ...t, autoAnnotations } : t
-    )
-    set({ tasks: updatedTasks })
+      // Update task with auto annotations
+      const updatedTasks = get().tasks.map(t =>
+        t.id === taskId ? { ...t, autoAnnotations } : t
+      )
+      set({
+        tasks: updatedTasks,
+        autoAnnotations,
+        isAnnotating: false,
+      })
+    } catch (error) {
+      console.error('Failed to load auto annotations:', error)
+      set({ isAnnotating: false })
+    }
+  },
+
+  // Fetch tasks from API
+  fetchTasks: async () => {
+    try {
+      const response = await AnnotationService.getAnnotationTasks({
+        status: get().statusFilter === 'all' ? undefined : get().statusFilter,
+        search: get().searchQuery,
+      })
+
+      const tasks = response.tasks
+      set({
+        tasks,
+        filteredTasks: tasks,
+        stats: calculateStats(tasks),
+      })
+    } catch (error) {
+      console.error('Failed to fetch tasks:', error)
+    }
+  },
+
+  // Save current annotations without approving/rejecting
+  saveCurrentAnnotations: async () => {
+    const { selectedTaskId, manualAnnotations, tasks } = get()
+    if (!selectedTaskId) return
+
+    try {
+      const categories = manualAnnotations.filter(a => a.type === 'category').map(a => a.value)
+      const entities = manualAnnotations
+        .filter(a => a.type === 'entity')
+        .map(a => {
+          const [type, value] = a.value.split(':')
+          return { type, value }
+        })
+      const keywords = manualAnnotations.filter(a => a.type === 'keyword').map(a => a.value)
+
+      await AnnotationService.saveAnnotation(selectedTaskId, { categories, entities, keywords })
+
+      // Update local task with saved annotations
+      const updatedTasks = tasks.map(t =>
+        t.id === selectedTaskId
+          ? { ...t, manualAnnotations: [...manualAnnotations] }
+          : t
+      )
+      set({ tasks: updatedTasks })
+    } catch (error) {
+      console.error('Failed to save annotations:', error)
+      throw error
+    }
   },
 }))
