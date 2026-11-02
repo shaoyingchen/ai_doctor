@@ -11,7 +11,7 @@ from services.search_service import SearchService
 from services.vector_service import QdrantVectorStore
 
 # Setup paths
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 SQLITE_PATH = DATA_DIR / "app.db"
 

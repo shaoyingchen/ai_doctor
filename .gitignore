@@ -7,15 +7,30 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Frontend dependencies and build output
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+
+# Local environment files
+.env
 *.local
+
+# Python cache
 __pycache__/
 *.pyc
-uploads/
-parsed-data/
-data/
+
+# Backend runtime data
+backend/data/
+backend/data.before-root-migration/
+backend/uploads/*
+!backend/uploads/2026-04-20/
+backend/uploads/2026-04-20/*
+!backend/uploads/2026-04-20/7ea83cf2-f366-4bb3-86ec-41b3259759cc-docker.txt
+!backend/uploads/2026-04-20/8898b5d1-7c82-4b18-ac4d-2efc392bbe0c-test.txt
+backend/parsed-data/*
+!backend/parsed-data/b05ec047-4e9e-472d-b65b-a26a311c0d7f.json
+!backend/parsed-data/ea4cf74f-1f50-4544-869b-eb605719cd7a.json
 
 # Editor directories and files
 .vscode/*
@@ -28,6 +43,7 @@ data/
 *.sln
 *.sw?
 
+# AI development tools
 .trellis
 .agents
 .codex

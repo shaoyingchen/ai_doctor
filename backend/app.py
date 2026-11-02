@@ -76,7 +76,7 @@ def load_module(module_path: Path, module_name: str) -> Any | None:
     return module
 
 
-BASE_DIR = Path(__file__).resolve().parents[1]
+BASE_DIR = Path(__file__).resolve().parent
 UPLOAD_DIR = BASE_DIR / "uploads"
 PARSED_DIR = BASE_DIR / "parsed-data"
 DATA_DIR = BASE_DIR / "data"
@@ -86,9 +86,9 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 PARSED_DIR.mkdir(parents=True, exist_ok=True)
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-PARSER_MODULE = load_module(BASE_DIR / "backend" / "python-parser" / "parser.py", "ai_doctor_parser")
-ANNOTATOR_MODULE = load_module(BASE_DIR / "backend" / "nlp-annotator" / "annotator.py", "ai_doctor_annotator")
-RAG_PIPELINE_SRC = BASE_DIR / "backend" / "rag_pipeline" / "src"
+PARSER_MODULE = load_module(BASE_DIR / "python-parser" / "parser.py", "ai_doctor_parser")
+ANNOTATOR_MODULE = load_module(BASE_DIR / "nlp-annotator" / "annotator.py", "ai_doctor_annotator")
+RAG_PIPELINE_SRC = BASE_DIR / "rag_pipeline" / "src"
 if RAG_PIPELINE_SRC.exists() and str(RAG_PIPELINE_SRC) not in sys.path:
     sys.path.insert(0, str(RAG_PIPELINE_SRC))
 

@@ -286,49 +286,22 @@ curl http://localhost:5000/api/knowledge-bases
 
 ### 前端部署
 
+前端工程位于独立的 `frontend/` 目录，以下命令均在仓库根目录执行。
+
 #### 1. 安装依赖
 
 ```bash
-# 返回项目根目录
-cd ..
-
-# 安装 Node.js 依赖
+cd frontend
 npm install
-```
-
-**主要依赖**:
-```json
-{
-  "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.20.0",
-    "antd": "^5.12.0",
-    "axios": "^1.6.2",
-    "@ant-design/icons": "^5.2.6"
-  },
-  "devDependencies": {
-    "@types/react": "^18.3.18",
-    "@types/react-dom": "^18.3.5",
-    "@vitejs/plugin-react": "^4.3.4",
-    "typescript": "~5.6.2",
-    "vite": "^6.0.11",
-    "eslint": "^9.18.0"
-  }
-}
 ```
 
 #### 2. 配置环境变量
 
-创建 `.env.local`:
+复制 `frontend/.env.example` 为 `frontend/.env.local`，按需修改 API 与 WebSocket 地址：
 
 ```env
-# API 基础地址
-VITE_API_BASE_URL=http://localhost:5000/api
-
-# 应用配置
-VITE_APP_TITLE=AI Doctor
-VITE_APP_VERSION=1.0.0
+VITE_API_BASE_URL=http://localhost:8000
+VITE_WS_URL=ws://localhost:8000
 ```
 
 #### 3. 启动开发服务器
@@ -337,7 +310,7 @@ VITE_APP_VERSION=1.0.0
 npm run dev
 ```
 
-前端服务将运行在 `http://localhost:5173`
+前端服务将运行在 `http://localhost:5173`。
 
 #### 4. 构建生产版本
 
@@ -345,7 +318,7 @@ npm run dev
 npm run build
 ```
 
-构建产物将输出到 `dist/` 目录。
+构建产物将输出到 `frontend/dist/` 目录。
 
 ---
 
@@ -411,7 +384,7 @@ CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "--timeout", "120", "app:app"]
 
 #### Dockerfile (前端)
 
-创建 `Dockerfile`:
+创建 `frontend/Dockerfile`:
 
 ```dockerfile
 # 构建阶段
@@ -495,7 +468,7 @@ services:
   # 前端服务
   frontend:
     build:
-      context: .
+      context: ./frontend
       dockerfile: Dockerfile
     container_name: frontend_prod
     ports:
@@ -529,7 +502,7 @@ docker-compose -f docker-compose.prod.yml down
 
 ### 2. Nginx 配置
 
-创建 `nginx.conf`:
+创建 `frontend/nginx.conf`，使其位于前端 Docker 构建上下文内：
 
 ```nginx
 server {

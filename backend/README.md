@@ -43,6 +43,7 @@ npm run dev
 ## Notes
 
 - Frontend API base remains `http://localhost:8000`.
-- Uploaded files are stored in `<repo>/uploads/`.
-- Parsed outputs are stored in `<repo>/parsed-data/`.
-- SQLite data is stored in `<repo>/data/app.db`.
+- Uploaded files are stored in `backend/uploads/`.
+- Parsed outputs are stored in `backend/parsed-data/`.
+- SQLite data is stored in `backend/data/app.db`.
+- Local Qdrant data is stored in `backend/data/qdrant/`.

@@ -1,326 +1,175 @@
 # AI Doctor - 智能医疗知识库系统
 
-基于RAG（检索增强生成）技术的智能医疗问答系统，支持多种文档格式解析、混合检索、QA自动生成和NLP标注。
+AI Doctor 是基于 RAG（检索增强生成）技术的智能医疗知识库系统，支持文档解析、知识库管理、混合检索、智能问答、QA 生成、NLP 标注与内容增强。
 
-## 功能特性
+仓库已按前后端拆分为两个独立工程目录：
 
-- **多格式文档解析**: 支持 PDF, DOCX, TXT, Markdown 等格式
-- **混合检索**: 结合语义检索和关键词检索，提供更精准的搜索结果
-- **RAG问答**: 基于知识库的检索增强生成，提供准确的医疗问答
-- **QA自动生成**: 从文档自动生成问答对，支持泛化和变体生成
-- **NLP标注**: 实体识别、关键词提取、相似度计算等NLP功能
-- **知识库管理**: 完整的知识库和文档CRUD操作
+- `frontend/`：React + TypeScript 前端应用。
+- `backend/`：FastAPI 后端服务、文档处理与 RAG 流水线。
+- `docs/`：项目级文档。
+
+完整的目录说明请查看 [工程目录介绍](docs/PROJECT_STRUCTURE.md)。
+
+## 核心功能
+
+- **多格式文档解析**：支持 PDF、DOCX、TXT、Markdown，以及 RAG 流水线支持的表格和演示文档。
+- **知识库管理**：维护知识库、目录和文档，跟踪上传及解析任务。
+- **混合检索**：结合 Qdrant 语义检索与 SQLite/BM25 关键词检索。
+- **RAG 问答**：基于知识库上下文进行检索增强生成。
+- **QA 自动生成**：从文档内容生成问答对、问题泛化及变体。
+- **NLP 标注**：提供实体识别、关键词提取等能力。
+- **内容增强与人工审核**：支持文档增强、质量检查及流水线审核流程。
 
 ## 技术栈
 
 ### 前端
-- React 18 + TypeScript
-- Vite 6
-- Ant Design 5
-- Axios
+
+- React 19 + TypeScript
+- Vite 8
+- React Router
+- Zustand
+- Tailwind CSS + Radix UI
+- Recharts + D3
 
 ### 后端
-- Python 3.9+
-- Flask 3.0
-- LangChain
-- Qdrant (向量数据库)
-- OpenAI / Zhipu AI (LLM)
-- spaCy / jieba (NLP)
+
+- Python 3.11+（RAG 子工程要求）
+- FastAPI + Uvicorn
+- Qdrant 本地文件存储
+- SQLite
+- OpenAI 兼容 LLM / Embedding API
+- 模块化 RAG Pipeline
+- jieba、PyMuPDF、python-docx
 
 ## 快速开始
 
 ### 环境要求
 
 - Node.js 18+
-- Python 3.9+
-- Docker (用于运行Qdrant)
+- Python 3.11+
+- npm
 
-### 1. 安装Qdrant向量数据库
+默认配置使用本地文件模式 Qdrant，无需单独启动 Docker 服务。
 
-使用Docker运行Qdrant：
-
-```bash
-docker run -p 6333:6333 -p 6334:6334 \
-    -v $(pwd)/qdrant_storage:/qdrant/storage:z \
-    qdrant/qdrant
-```
-
-或使用Docker Compose（推荐）：
-
-```yaml
-# docker-compose.yml
-version: '3.8'
-services:
-  qdrant:
-    image: qdrant/qdrant
-    ports:
-      - "6333:6333"
-      - "6334:6334"
-    volumes:
-      - ./qdrant_storage:/qdrant/storage
-```
-
-运行：
-```bash
-docker-compose up -d
-```
-
-验证Qdrant是否运行：
-```bash
-curl http://localhost:6333/
-```
-
-### 2. 后端设置
-
-#### 安装Python依赖
+### 1. 启动后端
 
 ```bash
 cd backend
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
-#### 配置环境变量
+复制环境变量示例并按需填写 LLM 与 Embedding 配置：
 
-复制示例配置文件：
 ```bash
+# macOS / Linux
 cp .env.example .env
+
+# Windows PowerShell
+Copy-Item .env.example .env
 ```
 
-编辑 `.env` 文件，配置必要的API密钥：
-```env
-# LLM配置（二选一）
-OPENAI_API_KEY=your_openai_api_key
-ZHIPUAI_API_KEY=your_zhipuai_api_key
-
-# Qdrant配置
-QDRANT_HOST=localhost
-QDRANT_PORT=6333
-QDRANT_API_KEY=  # 本地开发可留空
-
-# 应用配置
-FLASK_ENV=development
-FLASK_DEBUG=True
-```
-
-#### 启动后端服务
+启动服务：
 
 ```bash
-cd backend
-python app.py
+python -m uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-后端服务将运行在 `http://localhost:5000`
+后端地址：
 
-### 3. 前端设置
+- 服务入口：`http://localhost:8000`
+- 健康检查：`http://localhost:8000/health`
+- OpenAPI 文档：`http://localhost:8000/docs`
 
-#### 安装依赖
+### 2. 启动前端
+
+在新的终端中执行：
 
 ```bash
+cd frontend
 npm install
 ```
 
-#### 启动开发服务器
+如需自定义 API 地址，可复制并编辑环境变量文件：
+
+```bash
+# macOS / Linux
+cp .env.example .env.local
+
+# Windows PowerShell
+Copy-Item .env.example .env.local
+```
+
+启动开发服务器：
 
 ```bash
 npm run dev
 ```
 
-前端服务将运行在 `http://localhost:5173`
+前端默认地址为 `http://localhost:5173`，后端 API 默认地址为 `http://localhost:8000`。
 
 ## 项目结构
 
-```
+```text
 ai_doctor/
-├── backend/                # 后端服务
-│   ├── api/               # API路由
-│   │   ├── knowledge.py   # 知识库管理API
-│   │   └── nlp.py         # NLP标注API
-│   ├── services/          # 业务逻辑层
-│   │   ├── knowledge_service.py    # 知识库服务
-│   │   ├── rag_service.py          # RAG检索服务
-│   │   └── nlp_service.py          # NLP服务
-│   ├── config/            # 配置文件
-│   │   └── qdrant_config.py        # Qdrant配置
-│   ├── app.py             # Flask应用入口
-│   ├── requirements.txt   # Python依赖
-│   └── .env.example       # 环境变量示例
-├── src/                   # 前端代码
-│   ├── components/        # React组件
-│   ├── pages/            # 页面组件
-│   ├── services/         # API服务
-│   └── types/            # TypeScript类型
-├── docs/                  # 文档
-│   ├── KNOWLEDGE_BASE_API.md      # API文档
-│   ├── DEPLOYMENT.md              # 部署文档
-│   └── knowledge_base_usage.md    # 使用指南
-└── README.md
+├── frontend/                # 前端独立工程
+│   ├── src/                 # 页面、组件、状态、服务和类型
+│   ├── public/              # 静态资源
+│   ├── package.json         # 前端依赖与脚本
+│   └── vite.config.ts       # Vite 配置
+├── backend/                 # 后端独立工程
+│   ├── app.py               # FastAPI 应用入口
+│   ├── services/            # 检索、向量、问答、标注和增强服务
+│   ├── python-parser/       # 文档解析器
+│   ├── nlp-annotator/       # NLP 标注器
+│   ├── rag_pipeline/        # 模块化 RAG 流水线
+│   ├── uploads/             # 上传文件（运行时生成）
+│   ├── parsed-data/         # 解析结果（运行时生成）
+│   ├── data/                # SQLite 与 Qdrant 数据（运行时生成）
+│   └── requirements.txt     # Python 依赖
+├── docs/                    # 项目文档
+└── README.md                # 项目入口说明
 ```
 
-## 核心功能使用
+目录、模块职责及数据流的详细说明见 [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md)。
 
-### 1. 知识库管理
+## 常用命令
 
-创建知识库：
-```bash
-curl -X POST http://localhost:5000/api/knowledge-bases \
-  -H "Content-Type: application/json" \
-  -d '{"name": "医学知识库", "description": "临床医学知识"}'
-```
-
-### 2. 文档上传
+### 前端
 
 ```bash
-curl -X POST http://localhost:5000/api/knowledge-bases/{kb_id}/documents \
-  -F "file=@document.pdf"
+cd frontend
+npm run dev       # 开发服务器
+npm run build     # TypeScript 检查与生产构建
+npm run lint      # ESLint 检查
+npm run preview   # 预览生产构建
 ```
 
-### 3. 混合检索
+生产构建输出到 `frontend/dist/`。
 
-三种检索模式：
-- **semantic**: 纯语义检索（基于向量相似度）
-- **keyword**: 纯关键词检索（基于BM25）
-- **hybrid**: 混合检索（推荐，alpha=0.7表示70%语义+30%关键词）
+### 后端
 
-```bash
-curl -X POST http://localhost:5000/api/search \
-  -H "Content-Type: application/json" \
-  -d '{
-    "kb_id": "kb_xxx",
-    "query": "糖尿病的诊断标准",
-    "search_mode": "hybrid",
-    "top_k": 5,
-    "alpha": 0.7
-  }'
-```
-
-### 4. QA自动生成
-
-从文档生成问答对：
-```bash
-curl -X POST http://localhost:5000/api/documents/{doc_id}/generate-qa \
-  -H "Content-Type: application/json" \
-  -d '{"num_pairs": 10}'
-```
-
-### 5. NLP标注
-
-实体识别：
-```bash
-curl -X POST http://localhost:5000/api/nlp/extract-entities \
-  -H "Content-Type: application/json" \
-  -d '{"text": "患者诊断为2型糖尿病，处方二甲双胍500mg"}'
-```
-
-## 系统架构
-
-```
-┌─────────────┐
-│   前端UI    │  React + Ant Design
-└──────┬──────┘
-       │ HTTP/REST
-┌──────▼──────┐
-│  Flask API  │  路由层
-└──────┬──────┘
-       │
-┌──────▼──────────────────────────┐
-│      Service Layer               │
-│  ┌─────────────┐ ┌────────────┐ │
-│  │ Knowledge   │ │ NLP Service│ │
-│  │ Service     │ │            │ │
-│  └──────┬──────┘ └─────┬──────┘ │
-│         │               │        │
-│  ┌──────▼───────────────▼─────┐ │
-│  │     RAG Service            │ │
-│  │  (LangChain + Embedding)   │ │
-│  └──────┬─────────────────────┘ │
-└─────────┼─────────────────────┬─┘
-          │                     │
-    ┌─────▼─────┐         ┌────▼────┐
-    │  Qdrant   │         │  LLM    │
-    │  Vector   │         │ OpenAI/ │
-    │    DB     │         │ Zhipu   │
-    └───────────┘         └─────────┘
-```
-
-### 数据流
-
-1. **文档上传流程**:
-   - 用户上传文档 → 解析器处理 → 文本分块 → Embedding → 存入Qdrant
-
-2. **检索流程**:
-   - 用户查询 → Embedding + BM25 → 混合检索 → Rerank → 返回相关片段
-
-3. **RAG问答流程**:
-   - 用户问题 → 检索相关知识 → 构建Prompt → LLM生成答案 → 返回
-
-## 测试
-
-运行集成测试：
 ```bash
 cd backend
-pytest test_integration.py -v
+python -m uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-运行知识库服务测试：
-```bash
-pytest test_knowledge_services.py -v
-```
+也可以在 `backend/` 中使用 `npm run dev` 调用相同的后端启动命令。
 
-## API文档
+## 运行数据约定
 
-详细API文档请查看：[docs/KNOWLEDGE_BASE_API.md](./docs/KNOWLEDGE_BASE_API.md)
+| 目录 | 内容 | 是否提交 |
+|------|------|----------|
+| `backend/uploads/` | 用户上传的原始文档 | 否 |
+| `backend/parsed-data/` | 文档解析与分块结果 | 否 |
+| `backend/data/app.db` | 知识库、文档、任务等 SQLite 数据 | 否 |
+| `backend/data/qdrant/` | 本地向量索引 | 否 |
+| `backend/data/rag_store/` | RAG 流水线持久化数据 | 否 |
+| `frontend/dist/` | 前端生产构建产物 | 否 |
 
-## 部署指南
+## 更多文档
 
-详细部署说明请查看：[docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)
-
-## 配置说明
-
-### Qdrant配置
-
-- 默认端口: 6333 (HTTP API), 6334 (gRPC)
-- 数据持久化: 使用Docker Volume挂载 `./qdrant_storage`
-- 向量维度: 768 (使用OpenAI text-embedding-3-small)
-
-### LLM配置
-
-支持两种LLM提供商：
-- **OpenAI**: GPT-4, GPT-3.5-turbo
-- **智谱AI**: GLM-4
-
-在 `.env` 中配置对应的API密钥即可。
-
-### 文档处理配置
-
-- 支持格式: PDF, DOCX, TXT, MD
-- 分块大小: 500 tokens
-- 重叠大小: 50 tokens
-- 最大文件大小: 10MB
-
-## 常见问题
-
-### 1. Qdrant连接失败
-
-确保Qdrant Docker容器正在运行：
-```bash
-docker ps | grep qdrant
-```
-
-### 2. Embedding失败
-
-检查 `.env` 中的 `OPENAI_API_KEY` 或 `ZHIPUAI_API_KEY` 是否配置正确。
-
-### 3. 文档解析失败
-
-确保安装了所有必需的依赖：
-```bash
-pip install pypdf2 python-docx
-```
-
-## 许可证
-
-MIT License
-
-## 贡献
-
-欢迎提交Issue和Pull Request！
+- [工程目录介绍](docs/PROJECT_STRUCTURE.md)
+- [知识库 API](docs/KNOWLEDGE_BASE_API.md)
+- [部署指南](docs/DEPLOYMENT.md)
+- [性能优化说明](docs/PERFORMANCE_OPTIMIZATION.md)
+- [后端说明](backend/README.md)
