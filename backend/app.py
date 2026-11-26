@@ -799,6 +799,47 @@ def delete_pipeline_checkpoint(doc_id: str) -> None:
     db.commit()
 
 
+def _collect_enhance_embeddings(
+    enhance_result: dict[str, Any],
+    chunks: list[dict[str, Any]],
+) -> list[list[float]] | None:
+    """按 chunk_id 对齐 enhance 阶段的向量，供 Qdrant upsert 直接复用。
+
+    返回 None 表示无法复用（数量对不上或维度与 EMBEDDING_DIM 不一致），
+    此时由 vector_service 自行生成向量，保证链路不中断。
+    """
+    raw_embeddings = enhance_result.get("embeddings")
+    if not isinstance(raw_embeddings, list) or not raw_embeddings:
+        return None
+
+    by_chunk_id: dict[str, list[float]] = {}
+    for row in raw_embeddings:
+        if not isinstance(row, dict):
+            continue
+        chunk_id = row.get("chunk_id")
+        vector = row.get("vector")
+        if isinstance(chunk_id, str) and isinstance(vector, list) and vector:
+            by_chunk_id[chunk_id] = vector
+
+    if len(by_chunk_id) != len(chunks):
+        return None
+
+    ordered: list[list[float]] = []
+    for chunk in chunks:
+        chunk_id = chunk.get("chunk_id")
+        vector = by_chunk_id.get(chunk_id) if isinstance(chunk_id, str) else None
+        if vector is None:
+            return None
+        ordered.append(vector)
+
+    # 维度必须与 Qdrant collection 一致，否则交由 vector_service 重新生成
+    if vector_service is not None and vector_service.vector_size:
+        if any(len(vector) != vector_service.vector_size for vector in ordered):
+            return None
+    return ordered
+
+
+
 def _finalize_rag_success(
     *,
     doc_id: str,
@@ -815,6 +856,10 @@ def _finalize_rag_success(
     slot 置 completed -> chunks 表重写 -> Qdrant 向量 upsert（best-effort）
     -> upsert completed。chunks 优先取 parse_result，审核恢复场景 parse 阶段
     跳过了 build_chunks，取 enhance_result（兜底构建后由 enhance 图回传）。
+
+    向量复用：enhance 阶段已为每个 chunk 计算过 embedding，此处按 chunk_id
+    对齐后直接写入 Qdrant，不再调用第二次 embedding API（此前会重复向量化
+    一遍，既有额外延迟与成本，两处向量文本也不一致）。
     """
     slot["status"] = "completed"
     slot["progress"] = 100
@@ -827,11 +872,10 @@ def _finalize_rag_success(
         now = now_iso()
         # Delete existing chunks for this doc
         db.execute("DELETE FROM chunks WHERE doc_id = ?", (doc_id,))
-        # Insert new chunks. rag_pipeline chunks use the 'content' field
-        # and carry no 'chunk_index', so text falls back to 'content'
-        # and chunk_index falls back to the 1-based position. This must
-        # stay consistent with Qdrant payload chunk_index so that hybrid
-        # search can join keyword/semantic hits on (doc_id, chunk_index).
+        # Insert new chunks. rag_pipeline chunks use the 'content' field;
+        # chunk_index now comes from the chunker, and stays consistent with
+        # the Qdrant payload chunk_index so that hybrid search can join
+        # keyword/semantic hits on (doc_id, chunk_index).
         for position, chunk in enumerate(dict_chunks):
             chunk_id = str(uuid4())
             chunk_index = chunk.get("chunk_index")
@@ -849,18 +893,13 @@ def _finalize_rag_success(
             )
         db.commit()
 
-        # B6: upsert chunk vectors into Qdrant so semantic/hybrid search
-        # can retrieve them. Best-effort: failures are logged only and
-        # never break the pipeline. embeddings=None lets the vector
-        # service generate 1024-dim fake embeddings, because the
-        # rag_pipeline stub embeddings (dim=3) are incompatible with
-        # the Qdrant collection (vector_size=1024).
         if vector_service is not None and dict_chunks:
+            reused_embeddings = _collect_enhance_embeddings(enhance_result, dict_chunks)
             try:
                 vector_service.upsert_vectors(
                     doc_id=f"doc-{doc_id}",
                     chunks=dict_chunks,
-                    embeddings=None,
+                    embeddings=reused_embeddings,
                     kb_id=knowledge_base_id,
                     folder_id=folder_id,
                 )
