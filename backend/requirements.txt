@@ -4,6 +4,7 @@ python-multipart>=0.0.6
 pydantic>=2.0.0
 PyMuPDF>=1.22.5
 python-docx>=0.8.11
+pypdf>=4.0.0
 chardet>=5.0.0
 jieba>=0.42.0
 qdrant-client>=1.7.0
